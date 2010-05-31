@@ -1,9 +1,7 @@
 A faire
 
-20100531 Graph: ne pas afficher valeurs inconues
 
 
-20100531 Controle seuil marche/arret (default: 10 V)
 20100531 Sauver changements d'etat dans fichier
 20100531 Sauver Timestamp dernier etat ecrit
 
@@ -14,3 +12,5 @@ Fait
 20100531 Bouton mesure immediate
 20100531 Sauve etat courrant
 20100531 Recharge etat courrant
+20100531 Graph: ne pas afficher valeurs inconues
+20100531 Controle seuil marche/arret (default: 10 V)

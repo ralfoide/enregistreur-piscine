@@ -445,24 +445,25 @@ Dim DataBuffer(7) As Long
 
 '1 Day = 60*24=1440 minutes
 Const DataSize As Integer = 1440
-Const DataVersion As Integer = 3
+Const DataVersion As Integer = 4
 
 Const FichierEtatCourrant As String = "EtatCourrant.bin"
 
-Private Type StateType
-    Canal As Integer
-    Gain As Integer
-    Threshold As Integer ' en Volts pour affichage
-    Simulation As Boolean
-    DayIndex As Integer
-    LastWritten As Integer
-    DataYesterday(DataSize) As Integer
-    DataToday(DataSize) As Integer
-End Type
-
+' Non-saved state
 Dim StartTime As Variant
 Dim CurrentDataThreshold As Integer ' 0..255 for actual threshold
 Dim CurrentVoltCoef As Double
+
+' Saved state
+Dim Canal As Integer
+Dim Gain As Integer
+Dim Threshold As Integer ' en Volts pour affichage
+Dim Simulation As Boolean
+Dim DayIndex As Integer
+Dim LastWritten As Integer
+Dim DataYesterday(DataSize) As Integer
+Dim DataToday(DataSize) As Integer
+
 
 Private Sub Form_Load()
     Dim i As Integer
@@ -470,27 +471,24 @@ Private Sub Form_Load()
     mLabelError.Caption = ""
 
     If Not LoadState Then
-        ' Mettre a True pour debugger, false en mode normal
-        With CurrentState
-            .Simulation = False
-            .DayIndex = 0
-            .Canal = 0
-            .Gain = 1
-            .Threshold = 10
-        
-            For i = 0 To DataSize - 1
-                .DataToday(i) = -1
-                .DataYesterday(i) = -1
-            Next i
-        End With
+        Simulation = False
+        DayIndex = 0
+        Canal = 0
+        Gain = 1
+        Threshold = 10
+    
+        For i = 0 To DataSize - 1
+            DataToday(i) = -1
+            DataYesterday(i) = -1
+        Next i
     End If
-    If CurrentState.Gain < 1 Then CurrentState.Gain = 1
+    If Gain < 1 Then Gain = 1
     
     For i = 0 To 3
-        If Int(mComboCanal.ItemData(i)) = CurrentState.Canal Then
+        If Int(mComboCanal.ItemData(i)) = Canal Then
             mComboCanal.ListIndex = i
         End If
-        If Int(mComboGain.ItemData(i)) = CurrentState.Gain Then
+        If Int(mComboGain.ItemData(i)) = Gain Then
             mComboGain.ListIndex = i
         End If
     Next
@@ -498,22 +496,22 @@ Private Sub Form_Load()
     ' Commence en mode arrete
     mBtnStop_Click
     
-    If CurrentState.Simulation Then
+    If Simulation Then
         mTimer1.Interval = 1000 ' 1 second
     Else
         mTimer1.Interval = 60000 ' 1 minute
     End If
     mTimer1.Enabled = False
     
-    mTextThreshold.Text = CurrentState.Threshold
-    If CurrentState.Simulation Then mCheckSimulation.Value = 1
+    mTextThreshold.Text = Threshold
+    If Simulation Then mCheckSimulation.Value = 1
     
     Form_Paint
 End Sub
 
 Private Sub Form_Paint()
-    DrawPicture mPictureToday, CurrentState.DataToday
-    DrawPicture mPictureYesterday, CurrentState.DataYesterday
+    DrawPicture mPictureToday, DataToday
+    DrawPicture mPictureYesterday, DataYesterday
 End Sub
 
 Private Sub Form_Terminate()
@@ -522,19 +520,19 @@ Private Sub Form_Terminate()
 End Sub
 
 Private Sub mComboCanal_Click()
-    CurrentState.Canal = Int(mComboCanal.ItemData(mComboCanal.ListIndex))
+    Canal = Int(mComboCanal.ItemData(mComboCanal.ListIndex))
 End Sub
 
 Private Sub mComboGain_Click()
     ' Gain: 1=30V, 2=15V, 5=6V, 10=3V
-    CurrentState.Gain = Int(mComboGain.ItemData(mComboGain.ListIndex))
-    CurrentVoltCoef = 30 / CurrentState.Gain / 256
+    Gain = Int(mComboGain.ItemData(mComboGain.ListIndex))
+    CurrentVoltCoef = 30 / Gain / 256
 
-    If Not CurrentState.Simulation Then
-        SetGain 1, CurrentState.Gain
-        SetGain 2, CurrentState.Gain
-        SetGain 3, CurrentState.Gain
-        SetGain 4, CurrentState.Gain
+    If Not Simulation Then
+        SetGain 1, Gain
+        SetGain 2, Gain
+        SetGain 3, Gain
+        SetGain 4, Gain
     End If
     
     mTextThreshold_Change
@@ -545,19 +543,19 @@ Private Sub mCheckLED_Click()
 End Sub
 
 Private Sub mCheckSimulation_Click()
-    CurrentState.Simulation = (mCheckSimulation.Value = 1)
+    Simulation = (mCheckSimulation.Value = 1)
 End Sub
 
 Private Sub mBtnStart_Click()
     
-    If Not CurrentState.Simulation Then StartDevice
+    If Not Simulation Then StartDevice
     
     mComboCanal_Click
     mComboGain_Click
     
     mTimer1.Enabled = True
     StartTime = Time
-    If CurrentState.Simulation Then
+    If Simulation Then
         mLabelStatus.Caption = "Enregistrement (simulation)"
     Else
         mLabelStatus.Caption = "Enregistrement en cours"
@@ -567,15 +565,17 @@ End Sub
 Private Sub mBtnStop_Click()
     mTimer1.Enabled = False
     mLabelStatus.Caption = "Arrêté"
-    If Not CurrentState.Simulation Then StopDevice
+    If Not Simulation Then StopDevice
     SaveState
 End Sub
 
 Private Sub mTextThreshold_Change()
     Dim i, v As Integer
     
+    i = 0
+    On Error Resume Next ' Int() can fail
     i = Int(mTextThreshold.Text)
-    v = 30 / CurrentState.Gain
+    v = 30 / Gain
         
     CurrentDataThreshold = 256 * i / v
     
@@ -584,11 +584,11 @@ End Sub
 
 Private Sub mTimer1_Timer()
     ReadOne
-    If CurrentState.DayIndex >= DataSize Then
+    If DayIndex >= DataSize Then
         SwitchNextDay
     End If
     ' save sate every hour
-    If CurrentState.DayIndex Mod 60 = 0 Then
+    If DayIndex Mod 60 = 0 Then
         SaveState
     End If
 End Sub
@@ -605,10 +605,10 @@ Private Sub ReadOne()
     t = Time
     h = Hour(t)
     m = Minute(t)
-    CurrentState.DayIndex = h * 60 + m
+    DayIndex = h * 60 + m
     mLabelTime.Caption = Format(h, "00") + "h " + Format(m, "00")
     
-    If Not CurrentState.Simulation Then
+    If Not Simulation Then
         ReadData DataBuffer(0)
     Else
         SimulateRead
@@ -619,12 +619,12 @@ Private Sub ReadOne()
         mTextVolt(i).Text = Format(CurrentVoltCoef * DataBuffer(2 + i), "0.0 V")
     Next
 
-    If CurrentState.Canal >= 0 And CurrentState.Canal <= 3 Then
+    If Canal >= 0 And Canal <= 3 Then
         ' canal 0..3 is data byte #2..6
-        CurrentState.DataToday(CurrentState.DayIndex) = DataBuffer(CurrentState.Canal + 2)
+        DataToday(DayIndex) = DataBuffer(Canal + 2)
         
-        DrawPicture mPictureToday, CurrentState.DataToday
-        CurrentState.DayIndex = CurrentState.DayIndex + 1
+        DrawPicture mPictureToday, DataToday
+        DayIndex = DayIndex + 1
     End If
     
 End Sub
@@ -634,11 +634,11 @@ Private Sub SwitchNextDay()
     
     ' Transfer today to yesterday
     For i = 0 To DataSize - 1
-        CurrentState.DataYesterday(i) = CurrentState.DataToday(i)
-        CurrentState.DataToday(i) = 0
+        DataYesterday(i) = DataToday(i)
+        DataToday(i) = -1
     Next i
-    CurrentState.DayIndex = 0
-    DrawPicture mPictureYesterday, CurrentState.DataYesterday
+    DayIndex = 0
+    DrawPicture mPictureYesterday, DataYesterday
 End Sub
 
 Private Sub SimulateRead()
@@ -647,12 +647,12 @@ Private Sub SimulateRead()
     
     t1 = Hour(Time) * 3600 + Minute(Time) * 60 + Second(Time)
     t2 = Hour(StartTime) * 3600 + Minute(StartTime) * 60 + Second(StartTime)
-    CurrentState.DayIndex = (t1 - t2) Mod DataSize
-    t1 = CurrentState.DayIndex Mod 60
-    t2 = Int(CurrentState.DayIndex / 60)
+    DayIndex = (t1 - t2) Mod DataSize
+    t1 = DayIndex Mod 60
+    t2 = Int(DayIndex / 60)
     mLabelTime.Caption = Format(t2, "00") + "h " + Format(t1, "00")
     
-    b = 255 * ((Sin(CurrentState.DayIndex * 3.14159265385 * 6 / DataSize) + 1) / 2)
+    b = 255 * ((Sin(DayIndex * 3.14159265385 * 6 / DataSize) + 1) / 2)
     For i = 0 To 5
         DataBuffer(i) = (256 + b - 40 + 20 * i) Mod 256
     Next
@@ -660,7 +660,7 @@ End Sub
 
 Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
     Dim w, h As Integer
-    Dim i, x, y, y1, y2, x1, x2 As Integer
+    Dim d, i, x, y, y1, y2, x1, x2, lastx As Integer
     Dim xcoef, ycoef, tcoef As Double
     
     picbox.Refresh
@@ -678,7 +678,7 @@ Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
     
     ' Couleurs: http://msdn.microsoft.com/en-us/library/d2dz8078(VS.80).aspx
     
-    picbox.ForeColor = QBColor(12) ' light red
+    picbox.ForeColor = QBColor(10) ' light green
     y = y2 - CurrentDataThreshold * ycoef
     picbox.Line (0, y)-(w, y)
     
@@ -699,17 +699,26 @@ Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
         picbox.Line (x, y)-(x, h)
     Next
 
-Exit Sub
-    picbox.ForeColor = QBColor(0) ' noir
-
-    y = data(0) * ycoef
-    picbox.CurrentX = 0
-    picbox.CurrentY = y
-
+    lastx = -1
     For i = 0 To DataSize - 1
-        y = y2 - data(i) * ycoef
-        x = x1 + i * xcoef
-        picbox.Line -(x, y)
+        d = data(i)
+        If d >= 0 Then
+            y = y2 - d * ycoef
+            x = x1 + i * xcoef
+            If lastx < 0 Then
+                lastx = x
+                picbox.CurrentX = x
+                picbox.CurrentY = y
+            End If
+            If d > CurrentDataThreshold Then
+                picbox.ForeColor = QBColor(12) ' light red
+            Else
+                picbox.ForeColor = QBColor(0) ' noir
+            End If
+            picbox.Line -(x, y)
+        Else
+            lastx = -1
+        End If
     Next i
 End Sub
 
@@ -725,7 +734,14 @@ Private Function LoadState() As Boolean
         Get f, 1, version
                 
         If version = DataVersion Then
-            Get f, 1, CurrentState
+            Get f, , Canal
+            Get f, , Gain
+            Get f, , Threshold
+            Get f, , Simulation
+            Get f, , DayIndex
+            Get f, , LastWritten
+            Get f, , DataYesterday
+            Get f, , DataToday
         End If
     End If
     Close f
@@ -745,7 +761,15 @@ Private Sub SaveState()
     f = FreeFile
     Open App.Path & "\" & FichierEtatCourrant For Binary Access Write Lock Write As f
     Put f, 1, DataVersion
-    Put f, , CurrentState
+    
+    Put f, , Canal
+    Put f, , Gain
+    Put f, , Threshold
+    Put f, , Simulation
+    Put f, , DayIndex
+    Put f, , LastWritten
+    Put f, , DataYesterday
+    Put f, , DataToday
     Close f
     Exit Sub
     
