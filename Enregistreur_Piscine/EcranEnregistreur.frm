@@ -74,6 +74,7 @@ Begin VB.Form FormMain
       End
    End
    Begin VB.Timer mTimer1 
+      Enabled         =   0   'False
       Interval        =   60000
       Left            =   7680
       Top             =   3720
@@ -98,7 +99,7 @@ Begin VB.Form FormMain
          Height          =   375
          Left            =   4680
          TabIndex        =   40
-         Top             =   720
+         Top             =   600
          Width           =   1455
       End
       Begin VB.TextBox mTextVolt 
@@ -106,7 +107,7 @@ Begin VB.Form FormMain
          Index           =   1
          Left            =   2040
          TabIndex        =   22
-         Top             =   840
+         Top             =   720
          Width           =   735
       End
       Begin VB.TextBox mTextVolt 
@@ -114,7 +115,7 @@ Begin VB.Form FormMain
          Index           =   0
          Left            =   1080
          TabIndex        =   21
-         Top             =   840
+         Top             =   720
          Width           =   735
       End
       Begin VB.TextBox mTextVolt 
@@ -122,7 +123,7 @@ Begin VB.Form FormMain
          Index           =   3
          Left            =   3720
          TabIndex        =   20
-         Top             =   840
+         Top             =   720
          Width           =   735
       End
       Begin VB.TextBox mTextVolt 
@@ -130,20 +131,20 @@ Begin VB.Form FormMain
          Index           =   2
          Left            =   2880
          TabIndex        =   19
-         Top             =   840
+         Top             =   720
          Width           =   735
       End
       Begin VB.TextBox mTextLoggerIndex 
          Height          =   285
          Left            =   240
          TabIndex        =   17
-         Top             =   840
+         Top             =   720
          Width           =   735
       End
       Begin VB.Label mLabelTime 
          Caption         =   "(heure)"
          Height          =   255
-         Left            =   600
+         Left            =   720
          TabIndex        =   23
          Top             =   240
          Width           =   2655
@@ -153,7 +154,7 @@ Begin VB.Form FormMain
          Height          =   255
          Left            =   240
          TabIndex        =   18
-         Top             =   600
+         Top             =   480
          Width           =   735
       End
       Begin VB.Label Label4 
@@ -161,7 +162,7 @@ Begin VB.Form FormMain
          Height          =   195
          Left            =   1320
          TabIndex        =   7
-         Top             =   600
+         Top             =   480
          Width           =   375
       End
       Begin VB.Label Label5 
@@ -169,7 +170,7 @@ Begin VB.Form FormMain
          Height          =   195
          Left            =   2160
          TabIndex        =   6
-         Top             =   600
+         Top             =   480
          Width           =   375
       End
       Begin VB.Label Label6 
@@ -177,7 +178,7 @@ Begin VB.Form FormMain
          Height          =   195
          Left            =   3000
          TabIndex        =   5
-         Top             =   600
+         Top             =   480
          Width           =   375
       End
       Begin VB.Label Label7 
@@ -185,7 +186,7 @@ Begin VB.Form FormMain
          Height          =   195
          Left            =   3840
          TabIndex        =   4
-         Top             =   600
+         Top             =   480
          Width           =   375
       End
    End
@@ -216,6 +217,24 @@ Begin VB.Form FormMain
       TabIndex        =   0
       Top             =   3720
       Width           =   1455
+   End
+   Begin VB.Label mLabelError 
+      Caption         =   "(error placeholder)"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H000000FF&
+      Height          =   255
+      Left            =   3480
+      TabIndex        =   41
+      Top             =   3960
+      Width           =   3855
    End
    Begin VB.Label Label21 
       Alignment       =   2  'Center
@@ -361,7 +380,7 @@ Begin VB.Form FormMain
       Height          =   255
       Left            =   4080
       TabIndex        =   13
-      Top             =   3840
+      Top             =   3720
       Width           =   3255
    End
    Begin VB.Label Label10 
@@ -369,7 +388,7 @@ Begin VB.Form FormMain
       Height          =   255
       Left            =   3480
       TabIndex        =   12
-      Top             =   3840
+      Top             =   3720
       Width           =   495
    End
 End
@@ -397,76 +416,93 @@ Private Declare Sub LEDon Lib "k8047d.dll" ()
 Private Declare Sub LEDoff Lib "k8047d.dll" ()
 
 'Declare variables
-Dim Simulation As Boolean
 Dim DataBuffer(7) As Long
 
 '1 Day = 60*24=1440 minutes
 Const DataSize As Integer = 1440
+Const DataVersion As Integer = 2
 
-Dim CurrentCanal As Integer
-Dim CurrentGain As Integer
+Const FichierEtatCourrant As String = "EtatCourrant.bin"
+
 Dim CurrentVoltCoef As Double
-
-Dim DataYesterday(DataSize) As Integer
-Dim DataToday(DataSize) As Integer
-Dim DayIndex As Integer
 Dim StartTime As Variant
 
-Private Sub Form_Load()
+Private Type StateType
+    Canal As Integer
+    Gain As Integer
+    Simulation As Boolean
+    DayIndex As Integer
+    LastWritten As Integer
+    DataYesterday(DataSize) As Integer
+    DataToday(DataSize) As Integer
+End Type
 
-    ' Mettre a True pour debugger, false en mode normal
-    Simulation = True
+Dim CurrentState As StateType
+
+Private Sub Form_Load()
+    Dim i As Integer
+
+    mLabelError.Caption = ""
+
+    If Not LoadState Then
+        ' Mettre a True pour debugger, false en mode normal
+        CurrentState.Simulation = False
+           
+        CurrentState.DayIndex = 0
+        CurrentState.Canal = 0
+        CurrentState.Gain = 1
+    End If
+    If CurrentState.Gain < 1 Then CurrentState.Gain = 1
+    
+    For i = 0 To 3
+        If Int(mComboCanal.ItemData(i)) = CurrentState.Canal Then
+            mComboCanal.ListIndex = i
+        End If
+        If Int(mComboGain.ItemData(i)) = CurrentState.Gain Then
+            mComboGain.ListIndex = i
+        End If
+    Next
     
     ' Commence en mode arrete
     mBtnStop_Click
     
-    If Not Simulation Then StartDevice
+    DrawPicture mPictureToday, CurrentState.DataToday
+    DrawPicture mPictureYesterday, CurrentState.DataYesterday
     
-    ' Gain: 1=30V, 2=15V, 5=6V, 10=3V
-    
-    DayIndex = 0
-    mComboCanal.ListIndex = 0
-    mComboGain.ListIndex = 0
-    
-    mComboGain_Click
-    mComboCanal_Click
-    
-    DrawPicture mPictureToday, DataToday
-    DrawPicture mPictureYesterday, DataYesterday
-    
-    If Simulation Then
+    If CurrentState.Simulation Then
         mTimer1.Interval = 1000 ' 1 second
     Else
         mTimer1.Interval = 60000 ' 1 minute
     End If
     mTimer1.Enabled = False
     
-    If Simulation Then mCheckSimulation.Value = 1
-    
+    If CurrentState.Simulation Then mCheckSimulation.Value = 1
 End Sub
 
 Private Sub Form_Paint()
-    DrawPicture mPictureToday, DataToday
-    DrawPicture mPictureYesterday, DataYesterday
+    DrawPicture mPictureToday, CurrentState.DataToday
+    DrawPicture mPictureYesterday, CurrentState.DataYesterday
 End Sub
 
 Private Sub Form_Terminate()
-    If Not Simulation Then StopDevice
+    mBtnStop_Click
+    SaveState
 End Sub
 
 Private Sub mComboCanal_Click()
-    CurrentCanal = Int(mComboCanal.ItemData(mComboCanal.ListIndex))
+    CurrentState.Canal = Int(mComboCanal.ItemData(mComboCanal.ListIndex))
 End Sub
 
 Private Sub mComboGain_Click()
-    CurrentGain = Int(mComboGain.ItemData(mComboGain.ListIndex))
-    CurrentVoltCoef = 30 / CurrentGain / 255
+    ' Gain: 1=30V, 2=15V, 5=6V, 10=3V
+    CurrentState.Gain = Int(mComboGain.ItemData(mComboGain.ListIndex))
+    CurrentVoltCoef = 30 / CurrentState.Gain / 255
 
-    If Not Simulation Then
-        SetGain 1, CurrentGain
-        SetGain 2, CurrentGain
-        SetGain 3, CurrentGain
-        SetGain 4, CurrentGain
+    If Not CurrentState.Simulation Then
+        SetGain 1, CurrentState.Gain
+        SetGain 2, CurrentState.Gain
+        SetGain 3, CurrentState.Gain
+        SetGain 4, CurrentState.Gain
     End If
 End Sub
 
@@ -475,13 +511,19 @@ Private Sub mCheckLED_Click()
 End Sub
 
 Private Sub mCheckSimulation_Click()
-    Simulation = (mCheckSimulation.Value = 1)
+    CurrentState.Simulation = (mCheckSimulation.Value = 1)
 End Sub
 
 Private Sub mBtnStart_Click()
+    
+    If Not CurrentState.Simulation Then StartDevice
+    
+    mComboCanal_Click
+    mComboGain_Click
+    
     mTimer1.Enabled = True
     StartTime = Time
-    If Simulation Then
+    If CurrentState.Simulation Then
         mLabelStatus.Caption = "Enregistrement (simulation)"
     Else
         mLabelStatus.Caption = "Enregistrement en cours"
@@ -491,12 +533,18 @@ End Sub
 Private Sub mBtnStop_Click()
     mTimer1.Enabled = False
     mLabelStatus.Caption = "Arrêté"
+    If Not CurrentState.Simulation Then StopDevice
+    SaveState
 End Sub
 
 Private Sub mTimer1_Timer()
     ReadOne
-    If DayIndex >= DataSize Then
+    If CurrentState.DayIndex >= DataSize Then
         SwitchNextDay
+    End If
+    ' save sate every hour
+    If CurrentState.DayIndex Mod 60 = 0 Then
+        SaveState
     End If
 End Sub
 
@@ -512,10 +560,10 @@ Private Sub ReadOne()
     t = Time
     h = Hour(t)
     m = Minute(t)
-    DayIndex = h * 60 + m
+    CurrentState.DayIndex = h * 60 + m
     mLabelTime.Caption = Format(h, "00") + "h " + Format(m, "00")
     
-    If Not Simulation Then
+    If Not CurrentState.Simulation Then
         ReadData DataBuffer(0)
     Else
         SimulateRead
@@ -526,12 +574,12 @@ Private Sub ReadOne()
         mTextVolt(i).Text = Format(CurrentVoltCoef * DataBuffer(2 + i), "0.0 V")
     Next
 
-    If CurrentCanal >= 0 And CurrentCanal <= 3 Then
+    If CurrentState.Canal >= 0 And CurrentState.Canal <= 3 Then
         ' canal 0..3 is data byte #2..6
-        DataToday(DayIndex) = DataBuffer(CurrentCanal + 2)
+        CurrentState.DataToday(CurrentState.DayIndex) = DataBuffer(CurrentState.Canal + 2)
         
-        DrawPicture mPictureToday, DataToday
-        DayIndex = DayIndex + 1
+        DrawPicture mPictureToday, CurrentState.DataToday
+        CurrentState.DayIndex = CurrentState.DayIndex + 1
     End If
     
 End Sub
@@ -541,11 +589,11 @@ Private Sub SwitchNextDay()
     
     ' Transfer today to yesterday
     For i = 0 To DataSize - 1
-        DataYesterday(i) = DataToday(i)
-        DataToday(i) = 0
+        CurrentState.DataYesterday(i) = CurrentState.DataToday(i)
+        CurrentState.DataToday(i) = 0
     Next i
-    DayIndex = 0
-    DrawPicture mPictureYesterday, DataYesterday
+    CurrentState.DayIndex = 0
+    DrawPicture mPictureYesterday, CurrentState.DataYesterday
 End Sub
 
 Private Sub SimulateRead()
@@ -554,12 +602,12 @@ Private Sub SimulateRead()
     
     t1 = Hour(Time) * 3600 + Minute(Time) * 60 + Second(Time)
     t2 = Hour(StartTime) * 3600 + Minute(StartTime) * 60 + Second(StartTime)
-    DayIndex = (t1 - t2) Mod DataSize
-    t1 = DayIndex Mod 60
-    t2 = Int(DayIndex / 60)
+    CurrentState.DayIndex = (t1 - t2) Mod DataSize
+    t1 = CurrentState.DayIndex Mod 60
+    t2 = Int(CurrentState.DayIndex / 60)
     mLabelTime.Caption = Format(t2, "00") + "h " + Format(t1, "00")
     
-    b = 255 * ((Sin(DayIndex * 3.14159265385 * 6 / DataSize) + 1) / 2)
+    b = 255 * ((Sin(CurrentState.DayIndex * 3.14159265385 * 6 / DataSize) + 1) / 2)
     For i = 0 To 5
         DataBuffer(i) = (256 + b - 40 + 20 * i) Mod 256
     Next
@@ -613,4 +661,49 @@ Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
         x = x1 + i * xcoef
         picbox.Line -(x, y)
     Next i
+End Sub
+
+Private Function LoadState() As Boolean
+    Dim f, version As Integer
+    version = 0
+    
+    On Error GoTo erreur_load
+    f = FreeFile
+    Open App.Path & "\" & FichierEtatCourrant For Binary Access Read Lock Write As f
+    
+    If LOF(f) > 0 Then
+        Get f, 1, version
+                
+        If version = DataVersion Then
+            Get f, 1, CurrentState
+        End If
+    End If
+    Close f
+    
+    LoadState = (version = DataVersion)
+    Exit Function
+
+erreur_load:
+    ' ignore
+    LoadState = False
+End Function
+
+Private Sub SaveState()
+    Dim f As Integer
+    
+    On Error GoTo erreur_save
+    f = FreeFile
+    Open App.Path & "\" & FichierEtatCourrant For Binary Access Write Lock Write As f
+    Put f, 1, DataVersion
+    Put f, , CurrentState
+    Close f
+    Exit Sub
+    
+erreur_save:
+    displayError "Etat pas sauvé"
+End Sub
+
+Private Sub displayError(ByVal str As String)
+    mLabelError.Caption = str + " (" + Format(Err.Number) + " : " + Err.Description + ")"
+    Err.Clear
 End Sub
