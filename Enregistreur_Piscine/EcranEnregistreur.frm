@@ -9,7 +9,7 @@ Begin VB.Form FormMain
    LinkTopic       =   "Form1"
    ScaleHeight     =   5835
    ScaleWidth      =   9795
-   Begin VB.CheckBox CheckSimulation 
+   Begin VB.CheckBox mCheckSimulation 
       Caption         =   "Simulation"
       Height          =   255
       Left            =   8280
@@ -17,8 +17,8 @@ Begin VB.Form FormMain
       Top             =   4080
       Width           =   1215
    End
-   Begin VB.PictureBox PictureYesterday 
-      BackColor       =   &H00E0E0E0&
+   Begin VB.PictureBox mPictureYesterday 
+      BackColor       =   &H00FFFFC0&
       BorderStyle     =   0  'None
       Height          =   1215
       Left            =   120
@@ -35,32 +35,50 @@ Begin VB.Form FormMain
       Left            =   240
       TabIndex        =   9
       Top             =   4440
-      Width           =   4575
-      Begin VB.ComboBox ComboCanal 
+      Width           =   3015
+      Begin VB.ComboBox mComboGain 
          Height          =   315
          ItemData        =   "EcranEnregistreur.frx":0E42
-         Left            =   1320
-         List            =   "EcranEnregistreur.frx":0E52
+         Left            =   1440
+         List            =   "EcranEnregistreur.frx":0E53
+         Style           =   2  'Dropdown List
+         TabIndex        =   38
+         Top             =   720
+         Width           =   1335
+      End
+      Begin VB.ComboBox mComboCanal 
+         Height          =   315
+         ItemData        =   "EcranEnregistreur.frx":0E6D
+         Left            =   1440
+         List            =   "EcranEnregistreur.frx":0E7D
          Style           =   2  'Dropdown List
          TabIndex        =   10
          Top             =   360
          Width           =   1335
       End
+      Begin VB.Label Label22 
+         Caption         =   "Volts Entrée"
+         Height          =   255
+         Left            =   120
+         TabIndex        =   39
+         Top             =   765
+         Width           =   1335
+      End
       Begin VB.Label Label9 
-         Caption         =   "Enregistrer sur"
+         Caption         =   "Enregistrer depuis"
          Height          =   255
          Left            =   120
          TabIndex        =   11
-         Top             =   360
-         Width           =   1215
+         Top             =   400
+         Width           =   1335
       End
    End
-   Begin VB.Timer Timer1 
+   Begin VB.Timer mTimer1 
       Interval        =   60000
       Left            =   7680
       Top             =   3720
    End
-   Begin VB.CommandButton BtnStop 
+   Begin VB.CommandButton mBtnStop 
       Caption         =   "Arrêter"
       Height          =   495
       Left            =   1920
@@ -71,11 +89,19 @@ Begin VB.Form FormMain
    Begin VB.Frame Frame1 
       Caption         =   "Dernière Données Enregistreur"
       Height          =   1215
-      Left            =   5040
+      Left            =   3360
       TabIndex        =   3
       Top             =   4440
-      Width           =   4695
-      Begin VB.TextBox TextVolt 
+      Width           =   6255
+      Begin VB.CommandButton mBtnUpdateNow 
+         Caption         =   "Mettre à jour"
+         Height          =   375
+         Left            =   4680
+         TabIndex        =   40
+         Top             =   720
+         Width           =   1455
+      End
+      Begin VB.TextBox mTextVolt 
          Height          =   285
          Index           =   1
          Left            =   2040
@@ -83,7 +109,7 @@ Begin VB.Form FormMain
          Top             =   840
          Width           =   735
       End
-      Begin VB.TextBox TextVolt 
+      Begin VB.TextBox mTextVolt 
          Height          =   285
          Index           =   0
          Left            =   1080
@@ -91,7 +117,7 @@ Begin VB.Form FormMain
          Top             =   840
          Width           =   735
       End
-      Begin VB.TextBox TextVolt 
+      Begin VB.TextBox mTextVolt 
          Height          =   285
          Index           =   3
          Left            =   3720
@@ -99,7 +125,7 @@ Begin VB.Form FormMain
          Top             =   840
          Width           =   735
       End
-      Begin VB.TextBox TextVolt 
+      Begin VB.TextBox mTextVolt 
          Height          =   285
          Index           =   2
          Left            =   2880
@@ -107,14 +133,14 @@ Begin VB.Form FormMain
          Top             =   840
          Width           =   735
       End
-      Begin VB.TextBox TextLoggerIndex 
+      Begin VB.TextBox mTextLoggerIndex 
          Height          =   285
          Left            =   240
          TabIndex        =   17
          Top             =   840
          Width           =   735
       End
-      Begin VB.Label LabelTime 
+      Begin VB.Label mLabelTime 
          Caption         =   "(heure)"
          Height          =   255
          Left            =   600
@@ -163,8 +189,8 @@ Begin VB.Form FormMain
          Width           =   375
       End
    End
-   Begin VB.PictureBox PictureToday 
-      BackColor       =   &H00FFFFFF&
+   Begin VB.PictureBox mPictureToday 
+      BackColor       =   &H00C0FFC0&
       BorderStyle     =   0  'None
       Height          =   1215
       Left            =   120
@@ -175,7 +201,7 @@ Begin VB.Form FormMain
       Top             =   360
       Width           =   9495
    End
-   Begin VB.CheckBox CheckLED 
+   Begin VB.CheckBox mCheckLED 
       Caption         =   "Allumer LED"
       Height          =   375
       Left            =   8280
@@ -183,7 +209,7 @@ Begin VB.Form FormMain
       Top             =   3720
       Width           =   1335
    End
-   Begin VB.CommandButton BtnStart 
+   Begin VB.CommandButton mBtnStart 
       Caption         =   "Démarrer"
       Height          =   495
       Left            =   240
@@ -330,7 +356,7 @@ Begin VB.Form FormMain
       Top             =   120
       Width           =   1815
    End
-   Begin VB.Label LabelStatus 
+   Begin VB.Label mLabelStatus 
       Caption         =   "(status)"
       Height          =   255
       Left            =   4080
@@ -376,8 +402,10 @@ Dim DataBuffer(7) As Long
 
 '1 Day = 60*24=1440 minutes
 Const DataSize As Integer = 1440
-Const DataGain As Integer = 2
-Const DataVoltCoef As Double = 30 / DataGain / 255
+
+Dim CurrentCanal As Integer
+Dim CurrentGain As Integer
+Dim CurrentVoltCoef As Double
 
 Dim DataYesterday(DataSize) As Integer
 Dim DataToday(DataSize) As Integer
@@ -390,67 +418,90 @@ Private Sub Form_Load()
     Simulation = True
     
     ' Commence en mode arrete
-    BtnStop_Click
+    mBtnStop_Click
     
     If Not Simulation Then StartDevice
     
     ' Gain: 1=30V, 2=15V, 5=6V, 10=3V
-    If Not Simulation Then
-        SetGain 1, DataGain
-        SetGain 2, DataGain
-        SetGain 3, DataGain
-        SetGain 4, DataGain
-    End If
     
     DayIndex = 0
-    ComboCanal.ListIndex = 0
+    mComboCanal.ListIndex = 0
+    mComboGain.ListIndex = 0
     
-    DrawPicture PictureToday, DataToday
-    DrawPicture PictureYesterday, DataYesterday
+    mComboGain_Click
+    mComboCanal_Click
+    
+    DrawPicture mPictureToday, DataToday
+    DrawPicture mPictureYesterday, DataYesterday
     
     If Simulation Then
-        Timer1.Interval = 1000 ' 1 second
+        mTimer1.Interval = 1000 ' 1 second
     Else
-        Timer1.Interval = 60 * 1000 ' 1 minute
+        mTimer1.Interval = 60000 ' 1 minute
     End If
-    Timer1.Enabled = False
+    mTimer1.Enabled = False
     
-    If Simulation Then CheckSimulation.Value = 1
+    If Simulation Then mCheckSimulation.Value = 1
     
+End Sub
+
+Private Sub Form_Paint()
+    DrawPicture mPictureToday, DataToday
+    DrawPicture mPictureYesterday, DataYesterday
 End Sub
 
 Private Sub Form_Terminate()
     If Not Simulation Then StopDevice
 End Sub
 
-Private Sub CheckLED_Click()
-    If CheckLED.Value = 1 Then LEDon Else LEDoff
+Private Sub mComboCanal_Click()
+    CurrentCanal = Int(mComboCanal.ItemData(mComboCanal.ListIndex))
 End Sub
 
-Private Sub CheckSimulation_Click()
-    Simulation = (CheckSimulation.Value = 1)
-End Sub
+Private Sub mComboGain_Click()
+    CurrentGain = Int(mComboGain.ItemData(mComboGain.ListIndex))
+    CurrentVoltCoef = 30 / CurrentGain / 255
 
-Private Sub BtnStart_Click()
-    Timer1.Enabled = True
-    StartTime = Time
-    If Simulation Then
-        LabelStatus.Caption = "Enregistrement (simulation)"
-    Else
-        LabelStatus.Caption = "Enregistrement en cours"
+    If Not Simulation Then
+        SetGain 1, CurrentGain
+        SetGain 2, CurrentGain
+        SetGain 3, CurrentGain
+        SetGain 4, CurrentGain
     End If
 End Sub
 
-Private Sub BtnStop_Click()
-    Timer1.Enabled = False
-    LabelStatus.Caption = "Arrêté"
+Private Sub mCheckLED_Click()
+    If mCheckLED.Value = 1 Then LEDon Else LEDoff
 End Sub
 
-Private Sub Timer1_Timer()
+Private Sub mCheckSimulation_Click()
+    Simulation = (mCheckSimulation.Value = 1)
+End Sub
+
+Private Sub mBtnStart_Click()
+    mTimer1.Enabled = True
+    StartTime = Time
+    If Simulation Then
+        mLabelStatus.Caption = "Enregistrement (simulation)"
+    Else
+        mLabelStatus.Caption = "Enregistrement en cours"
+    End If
+End Sub
+
+Private Sub mBtnStop_Click()
+    mTimer1.Enabled = False
+    mLabelStatus.Caption = "Arrêté"
+End Sub
+
+Private Sub mTimer1_Timer()
     ReadOne
     If DayIndex >= DataSize Then
         SwitchNextDay
     End If
+End Sub
+
+Private Sub mBtnUpdateNow_Click()
+    mTimer1_Timer
 End Sub
 
 Private Sub ReadOne()
@@ -462,7 +513,7 @@ Private Sub ReadOne()
     h = Hour(t)
     m = Minute(t)
     DayIndex = h * 60 + m
-    LabelTime.Caption = Format(h, "00") + "h " + Format(m, "00")
+    mLabelTime.Caption = Format(h, "00") + "h " + Format(m, "00")
     
     If Not Simulation Then
         ReadData DataBuffer(0)
@@ -470,19 +521,16 @@ Private Sub ReadOne()
         SimulateRead
     End If
     
-    TextLoggerIndex.Text = Format(DataBuffer(0)) + "," + Format(DataBuffer(1))
+    mTextLoggerIndex.Text = Format(DataBuffer(0)) + "," + Format(DataBuffer(1))
     For i = 0 To 3
-        TextVolt(i).Text = Format(DataVoltCoef * DataBuffer(2 + i), "0.0 V")
+        mTextVolt(i).Text = Format(CurrentVoltCoef * DataBuffer(2 + i), "0.0 V")
     Next
 
-
-    Dim canal As Integer
-    canal = ComboCanal.ListIndex
-    If canal >= 0 And canal <= 3 Then
+    If CurrentCanal >= 0 And CurrentCanal <= 3 Then
         ' canal 0..3 is data byte #2..6
-        DataToday(DayIndex) = DataBuffer(canal + 2)
+        DataToday(DayIndex) = DataBuffer(CurrentCanal + 2)
         
-        DrawPicture PictureToday, DataToday
+        DrawPicture mPictureToday, DataToday
         DayIndex = DayIndex + 1
     End If
     
@@ -497,7 +545,7 @@ Private Sub SwitchNextDay()
         DataToday(i) = 0
     Next i
     DayIndex = 0
-    DrawPicture PictureYesterday, DataYesterday
+    DrawPicture mPictureYesterday, DataYesterday
 End Sub
 
 Private Sub SimulateRead()
@@ -509,7 +557,7 @@ Private Sub SimulateRead()
     DayIndex = (t1 - t2) Mod DataSize
     t1 = DayIndex Mod 60
     t2 = Int(DayIndex / 60)
-    LabelTime.Caption = Format(t2, "00") + "h " + Format(t1, "00")
+    mLabelTime.Caption = Format(t2, "00") + "h " + Format(t1, "00")
     
     b = 255 * ((Sin(DayIndex * 3.14159265385 * 6 / DataSize) + 1) / 2)
     For i = 0 To 5
