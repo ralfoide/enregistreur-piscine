@@ -1,20 +1,20 @@
 VERSION 5.00
 Begin VB.Form FormMain 
    Caption         =   "Enregistreur Piscine"
-   ClientHeight    =   5520
+   ClientHeight    =   5835
    ClientLeft      =   1485
    ClientTop       =   1875
    ClientWidth     =   9795
    Icon            =   "EcranEnregistreur.frx":0000
    LinkTopic       =   "Form1"
-   ScaleHeight     =   5520
+   ScaleHeight     =   5835
    ScaleWidth      =   9795
    Begin VB.CheckBox CheckSimulation 
       Caption         =   "Simulation"
       Height          =   255
       Left            =   8280
       TabIndex        =   24
-      Top             =   3840
+      Top             =   4080
       Width           =   1215
    End
    Begin VB.PictureBox PictureYesterday 
@@ -26,7 +26,7 @@ Begin VB.Form FormMain
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   633
       TabIndex        =   14
-      Top             =   1920
+      Top             =   2160
       Width           =   9495
    End
    Begin VB.Frame Frame2 
@@ -34,13 +34,13 @@ Begin VB.Form FormMain
       Height          =   1215
       Left            =   240
       TabIndex        =   9
-      Top             =   4200
+      Top             =   4440
       Width           =   4575
       Begin VB.ComboBox ComboCanal 
          Height          =   315
-         ItemData        =   "EcranEnregistreur.frx":030A
+         ItemData        =   "EcranEnregistreur.frx":0E42
          Left            =   1320
-         List            =   "EcranEnregistreur.frx":031A
+         List            =   "EcranEnregistreur.frx":0E52
          Style           =   2  'Dropdown List
          TabIndex        =   10
          Top             =   360
@@ -58,14 +58,14 @@ Begin VB.Form FormMain
    Begin VB.Timer Timer1 
       Interval        =   60000
       Left            =   7680
-      Top             =   3480
+      Top             =   3720
    End
    Begin VB.CommandButton BtnStop 
       Caption         =   "Arrêter"
       Height          =   495
       Left            =   1920
       TabIndex        =   8
-      Top             =   3480
+      Top             =   3720
       Width           =   1455
    End
    Begin VB.Frame Frame1 
@@ -73,7 +73,7 @@ Begin VB.Form FormMain
       Height          =   1215
       Left            =   5040
       TabIndex        =   3
-      Top             =   4200
+      Top             =   4440
       Width           =   4695
       Begin VB.TextBox TextVolt 
          Height          =   285
@@ -180,7 +180,7 @@ Begin VB.Form FormMain
       Height          =   375
       Left            =   8280
       TabIndex        =   1
-      Top             =   3480
+      Top             =   3720
       Width           =   1335
    End
    Begin VB.CommandButton BtnStart 
@@ -188,8 +188,124 @@ Begin VB.Form FormMain
       Height          =   495
       Left            =   240
       TabIndex        =   0
-      Top             =   3480
+      Top             =   3720
       Width           =   1455
+   End
+   Begin VB.Label Label21 
+      Alignment       =   2  'Center
+      Caption         =   "22"
+      Height          =   255
+      Left            =   8640
+      TabIndex        =   37
+      Top             =   1680
+      Width           =   375
+   End
+   Begin VB.Label Label20 
+      Alignment       =   2  'Center
+      Caption         =   "20"
+      Height          =   255
+      Left            =   7920
+      TabIndex        =   36
+      Top             =   1680
+      Width           =   255
+   End
+   Begin VB.Label Label19 
+      Alignment       =   2  'Center
+      Caption         =   "16"
+      Height          =   255
+      Left            =   6240
+      TabIndex        =   35
+      Top             =   1680
+      Width           =   375
+   End
+   Begin VB.Label Label18 
+      Alignment       =   2  'Center
+      Caption         =   "14"
+      Height          =   255
+      Left            =   5520
+      TabIndex        =   34
+      Top             =   1680
+      Width           =   255
+   End
+   Begin VB.Label Label17 
+      Alignment       =   2  'Center
+      Caption         =   "10"
+      Height          =   255
+      Left            =   3840
+      TabIndex        =   33
+      Top             =   1680
+      Width           =   375
+   End
+   Begin VB.Label Label16 
+      Alignment       =   2  'Center
+      Caption         =   "8"
+      Height          =   255
+      Left            =   3120
+      TabIndex        =   32
+      Top             =   1680
+      Width           =   375
+   End
+   Begin VB.Label Label15 
+      Alignment       =   2  'Center
+      Caption         =   "4"
+      Height          =   255
+      Left            =   1560
+      TabIndex        =   31
+      Top             =   1680
+      Width           =   255
+   End
+   Begin VB.Label Label14 
+      Alignment       =   2  'Center
+      Caption         =   "2"
+      Height          =   255
+      Left            =   720
+      TabIndex        =   30
+      Top             =   1680
+      Width           =   375
+   End
+   Begin VB.Label Label13 
+      Alignment       =   2  'Center
+      Caption         =   "18"
+      Height          =   255
+      Left            =   7080
+      TabIndex        =   29
+      Top             =   1680
+      Width           =   375
+   End
+   Begin VB.Label Label8 
+      Alignment       =   2  'Center
+      Caption         =   "12"
+      Height          =   255
+      Left            =   4680
+      TabIndex        =   28
+      Top             =   1680
+      Width           =   375
+   End
+   Begin VB.Label Label3 
+      Alignment       =   2  'Center
+      Caption         =   "6"
+      Height          =   255
+      Left            =   2400
+      TabIndex        =   27
+      Top             =   1680
+      Width           =   255
+   End
+   Begin VB.Label Label2 
+      Alignment       =   1  'Right Justify
+      Caption         =   "24"
+      Height          =   255
+      Left            =   9360
+      TabIndex        =   26
+      Top             =   1680
+      Width           =   375
+   End
+   Begin VB.Label Label1 
+      Caption         =   "0"
+      Height          =   255
+      Left            =   120
+      TabIndex        =   25
+      Top             =   1680
+      Width           =   135
    End
    Begin VB.Label Label12 
       Alignment       =   2  'Center
@@ -197,14 +313,14 @@ Begin VB.Form FormMain
       Height          =   255
       Left            =   360
       TabIndex        =   16
-      Top             =   1680
+      Top             =   1920
       Width           =   495
    End
    Begin VB.Line Line1 
       X1              =   120
       X2              =   9600
-      Y1              =   1800
-      Y2              =   1800
+      Y1              =   2040
+      Y2              =   2040
    End
    Begin VB.Label Label11 
       Caption         =   "Aujourd'hui"
@@ -219,7 +335,7 @@ Begin VB.Form FormMain
       Height          =   255
       Left            =   4080
       TabIndex        =   13
-      Top             =   3600
+      Top             =   3840
       Width           =   3255
    End
    Begin VB.Label Label10 
@@ -227,7 +343,7 @@ Begin VB.Form FormMain
       Height          =   255
       Left            =   3480
       TabIndex        =   12
-      Top             =   3600
+      Top             =   3840
       Width           =   495
    End
 End
@@ -397,7 +513,7 @@ Private Sub SimulateRead()
     
     b = 255 * ((Sin(DayIndex * 3.14159265385 * 6 / DataSize) + 1) / 2)
     For i = 0 To 5
-        DataBuffer(i) = (b + 20 * i) Mod 256
+        DataBuffer(i) = (256 + b - 40 + 20 * i) Mod 256
     Next
 End Sub
 
@@ -428,7 +544,14 @@ Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
     tcoef = (x2 - x1) / 24
     For i = 0 To 24
         x = x1 + i * tcoef
-        picbox.Line (x, y1 - 2)-(x, y2 + 2)
+        If i Mod 6 = 0 Then
+            y = 0
+        ElseIf i Mod 2 = 0 Then
+            y = (y2 - y1) / 2
+        Else
+            y = (y2 - y1) * 3 / 4
+        End If
+        picbox.Line (x, y)-(x, y2)
     Next
 
     picbox.ForeColor = QBColor(0) ' noir

@@ -1,0 +1,7 @@
+Based on Velleman kit PCS10/K8047:
+  http://www.velleman.eu/distributor/products/view/?id=350526
+
+DLL and EXE are property of Velleman, as support code for the K8047, and
+available here:
+  http://www.velleman.eu/distributor/support/downloads/?code=PCS10
+
