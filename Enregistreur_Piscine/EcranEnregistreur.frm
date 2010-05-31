@@ -14,7 +14,7 @@ Begin VB.Form FormMain
       Height          =   255
       Left            =   8280
       TabIndex        =   24
-      Top             =   4080
+      Top             =   3960
       Width           =   1215
    End
    Begin VB.PictureBox mPictureYesterday 
@@ -31,11 +31,20 @@ Begin VB.Form FormMain
    End
    Begin VB.Frame Frame2 
       Caption         =   "Paramètres"
-      Height          =   1215
+      Height          =   1455
       Left            =   240
       TabIndex        =   9
-      Top             =   4440
+      Top             =   4320
       Width           =   3015
+      Begin VB.TextBox mTextThreshold 
+         Alignment       =   1  'Right Justify
+         Height          =   285
+         Left            =   1440
+         TabIndex        =   43
+         Text            =   "10"
+         Top             =   960
+         Width           =   975
+      End
       Begin VB.ComboBox mComboGain 
          Height          =   315
          ItemData        =   "EcranEnregistreur.frx":0E42
@@ -43,7 +52,7 @@ Begin VB.Form FormMain
          List            =   "EcranEnregistreur.frx":0E53
          Style           =   2  'Dropdown List
          TabIndex        =   38
-         Top             =   720
+         Top             =   600
          Width           =   1335
       End
       Begin VB.ComboBox mComboCanal 
@@ -53,7 +62,23 @@ Begin VB.Form FormMain
          List            =   "EcranEnregistreur.frx":0E7D
          Style           =   2  'Dropdown List
          TabIndex        =   10
-         Top             =   360
+         Top             =   240
+         Width           =   1335
+      End
+      Begin VB.Label Label24 
+         Caption         =   "V"
+         Height          =   255
+         Left            =   2520
+         TabIndex        =   44
+         Top             =   1005
+         Width           =   255
+      End
+      Begin VB.Label Label23 
+         Caption         =   "Seuil Marche"
+         Height          =   255
+         Left            =   120
+         TabIndex        =   42
+         Top             =   1005
          Width           =   1335
       End
       Begin VB.Label Label22 
@@ -61,7 +86,7 @@ Begin VB.Form FormMain
          Height          =   255
          Left            =   120
          TabIndex        =   39
-         Top             =   765
+         Top             =   645
          Width           =   1335
       End
       Begin VB.Label Label9 
@@ -69,7 +94,7 @@ Begin VB.Form FormMain
          Height          =   255
          Left            =   120
          TabIndex        =   11
-         Top             =   400
+         Top             =   285
          Width           =   1335
       End
    End
@@ -89,17 +114,17 @@ Begin VB.Form FormMain
    End
    Begin VB.Frame Frame1 
       Caption         =   "Dernière Données Enregistreur"
-      Height          =   1215
+      Height          =   1455
       Left            =   3360
       TabIndex        =   3
-      Top             =   4440
+      Top             =   4320
       Width           =   6255
       Begin VB.CommandButton mBtnUpdateNow 
          Caption         =   "Mettre à jour"
          Height          =   375
          Left            =   4680
          TabIndex        =   40
-         Top             =   600
+         Top             =   720
          Width           =   1455
       End
       Begin VB.TextBox mTextVolt 
@@ -107,7 +132,7 @@ Begin VB.Form FormMain
          Index           =   1
          Left            =   2040
          TabIndex        =   22
-         Top             =   720
+         Top             =   840
          Width           =   735
       End
       Begin VB.TextBox mTextVolt 
@@ -115,7 +140,7 @@ Begin VB.Form FormMain
          Index           =   0
          Left            =   1080
          TabIndex        =   21
-         Top             =   720
+         Top             =   840
          Width           =   735
       End
       Begin VB.TextBox mTextVolt 
@@ -123,7 +148,7 @@ Begin VB.Form FormMain
          Index           =   3
          Left            =   3720
          TabIndex        =   20
-         Top             =   720
+         Top             =   840
          Width           =   735
       End
       Begin VB.TextBox mTextVolt 
@@ -131,14 +156,14 @@ Begin VB.Form FormMain
          Index           =   2
          Left            =   2880
          TabIndex        =   19
-         Top             =   720
+         Top             =   840
          Width           =   735
       End
       Begin VB.TextBox mTextLoggerIndex 
          Height          =   285
          Left            =   240
          TabIndex        =   17
-         Top             =   720
+         Top             =   840
          Width           =   735
       End
       Begin VB.Label mLabelTime 
@@ -154,7 +179,7 @@ Begin VB.Form FormMain
          Height          =   255
          Left            =   240
          TabIndex        =   18
-         Top             =   480
+         Top             =   600
          Width           =   735
       End
       Begin VB.Label Label4 
@@ -162,7 +187,7 @@ Begin VB.Form FormMain
          Height          =   195
          Left            =   1320
          TabIndex        =   7
-         Top             =   480
+         Top             =   600
          Width           =   375
       End
       Begin VB.Label Label5 
@@ -170,7 +195,7 @@ Begin VB.Form FormMain
          Height          =   195
          Left            =   2160
          TabIndex        =   6
-         Top             =   480
+         Top             =   600
          Width           =   375
       End
       Begin VB.Label Label6 
@@ -178,7 +203,7 @@ Begin VB.Form FormMain
          Height          =   195
          Left            =   3000
          TabIndex        =   5
-         Top             =   480
+         Top             =   600
          Width           =   375
       End
       Begin VB.Label Label7 
@@ -186,7 +211,7 @@ Begin VB.Form FormMain
          Height          =   195
          Left            =   3840
          TabIndex        =   4
-         Top             =   480
+         Top             =   600
          Width           =   375
       End
    End
@@ -207,7 +232,7 @@ Begin VB.Form FormMain
       Height          =   375
       Left            =   8280
       TabIndex        =   1
-      Top             =   3720
+      Top             =   3600
       Width           =   1335
    End
    Begin VB.CommandButton mBtnStart 
@@ -231,10 +256,10 @@ Begin VB.Form FormMain
       EndProperty
       ForeColor       =   &H000000FF&
       Height          =   255
-      Left            =   3480
+      Left            =   3600
       TabIndex        =   41
       Top             =   3960
-      Width           =   3855
+      Width           =   3735
    End
    Begin VB.Label Label21 
       Alignment       =   2  'Center
@@ -378,15 +403,15 @@ Begin VB.Form FormMain
    Begin VB.Label mLabelStatus 
       Caption         =   "(status)"
       Height          =   255
-      Left            =   4080
+      Left            =   4200
       TabIndex        =   13
       Top             =   3720
-      Width           =   3255
+      Width           =   3135
    End
    Begin VB.Label Label10 
       Caption         =   "Etat:"
       Height          =   255
-      Left            =   3480
+      Left            =   3600
       TabIndex        =   12
       Top             =   3720
       Width           =   495
@@ -420,16 +445,14 @@ Dim DataBuffer(7) As Long
 
 '1 Day = 60*24=1440 minutes
 Const DataSize As Integer = 1440
-Const DataVersion As Integer = 2
+Const DataVersion As Integer = 3
 
 Const FichierEtatCourrant As String = "EtatCourrant.bin"
-
-Dim CurrentVoltCoef As Double
-Dim StartTime As Variant
 
 Private Type StateType
     Canal As Integer
     Gain As Integer
+    Threshold As Integer ' en Volts pour affichage
     Simulation As Boolean
     DayIndex As Integer
     LastWritten As Integer
@@ -437,7 +460,9 @@ Private Type StateType
     DataToday(DataSize) As Integer
 End Type
 
-Dim CurrentState As StateType
+Dim StartTime As Variant
+Dim CurrentDataThreshold As Integer ' 0..255 for actual threshold
+Dim CurrentVoltCoef As Double
 
 Private Sub Form_Load()
     Dim i As Integer
@@ -446,11 +471,18 @@ Private Sub Form_Load()
 
     If Not LoadState Then
         ' Mettre a True pour debugger, false en mode normal
-        CurrentState.Simulation = False
-           
-        CurrentState.DayIndex = 0
-        CurrentState.Canal = 0
-        CurrentState.Gain = 1
+        With CurrentState
+            .Simulation = False
+            .DayIndex = 0
+            .Canal = 0
+            .Gain = 1
+            .Threshold = 10
+        
+            For i = 0 To DataSize - 1
+                .DataToday(i) = -1
+                .DataYesterday(i) = -1
+            Next i
+        End With
     End If
     If CurrentState.Gain < 1 Then CurrentState.Gain = 1
     
@@ -466,9 +498,6 @@ Private Sub Form_Load()
     ' Commence en mode arrete
     mBtnStop_Click
     
-    DrawPicture mPictureToday, CurrentState.DataToday
-    DrawPicture mPictureYesterday, CurrentState.DataYesterday
-    
     If CurrentState.Simulation Then
         mTimer1.Interval = 1000 ' 1 second
     Else
@@ -476,7 +505,10 @@ Private Sub Form_Load()
     End If
     mTimer1.Enabled = False
     
+    mTextThreshold.Text = CurrentState.Threshold
     If CurrentState.Simulation Then mCheckSimulation.Value = 1
+    
+    Form_Paint
 End Sub
 
 Private Sub Form_Paint()
@@ -496,7 +528,7 @@ End Sub
 Private Sub mComboGain_Click()
     ' Gain: 1=30V, 2=15V, 5=6V, 10=3V
     CurrentState.Gain = Int(mComboGain.ItemData(mComboGain.ListIndex))
-    CurrentVoltCoef = 30 / CurrentState.Gain / 255
+    CurrentVoltCoef = 30 / CurrentState.Gain / 256
 
     If Not CurrentState.Simulation Then
         SetGain 1, CurrentState.Gain
@@ -504,6 +536,8 @@ Private Sub mComboGain_Click()
         SetGain 3, CurrentState.Gain
         SetGain 4, CurrentState.Gain
     End If
+    
+    mTextThreshold_Change
 End Sub
 
 Private Sub mCheckLED_Click()
@@ -535,6 +569,17 @@ Private Sub mBtnStop_Click()
     mLabelStatus.Caption = "Arrêté"
     If Not CurrentState.Simulation Then StopDevice
     SaveState
+End Sub
+
+Private Sub mTextThreshold_Change()
+    Dim i, v As Integer
+    
+    i = Int(mTextThreshold.Text)
+    v = 30 / CurrentState.Gain
+        
+    CurrentDataThreshold = 256 * i / v
+    
+    Form_Paint
 End Sub
 
 Private Sub mTimer1_Timer()
@@ -623,33 +668,38 @@ Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
     w = picbox.ScaleWidth
     h = picbox.ScaleHeight
     
-    y1 = 0
-    y2 = h - 1
-    ycoef = (y2 - y1) / 255
+    y1 = 1
+    y2 = h - 2
+    ycoef = (y2 - y1) / 256
     
-    x1 = 0
-    x2 = w - 1
+    x1 = 1
+    x2 = w - 2
     xcoef = (x2 - x1) / DataSize
     
     ' Couleurs: http://msdn.microsoft.com/en-us/library/d2dz8078(VS.80).aspx
-    picbox.ForeColor = QBColor(8) ' gris
     
-    picbox.Line (0, y1)-(w, y1)
-    picbox.Line (0, y2)-(w, y2)
+    picbox.ForeColor = QBColor(12) ' light red
+    y = y2 - CurrentDataThreshold * ycoef
+    picbox.Line (0, y)-(w, y)
+    
+    picbox.ForeColor = QBColor(8) ' gris
+    picbox.Line (0, 0)-(w, 0)
+    picbox.Line (0, h - 1)-(w, h - 1)
 
-    tcoef = (x2 - x1) / 24
+    tcoef = (w - 1) / 24
     For i = 0 To 24
-        x = x1 + i * tcoef
+        x = i * tcoef
         If i Mod 6 = 0 Then
             y = 0
         ElseIf i Mod 2 = 0 Then
-            y = (y2 - y1) / 2
+            y = h / 2
         Else
-            y = (y2 - y1) * 3 / 4
+            y = h * 3 / 4
         End If
-        picbox.Line (x, y)-(x, y2)
+        picbox.Line (x, y)-(x, h)
     Next
 
+Exit Sub
     picbox.ForeColor = QBColor(0) ' noir
 
     y = data(0) * ycoef
@@ -700,10 +750,10 @@ Private Sub SaveState()
     Exit Sub
     
 erreur_save:
-    displayError "Etat pas sauvé"
+    DisplayError "Etat pas sauvé"
 End Sub
 
-Private Sub displayError(ByVal str As String)
+Private Sub DisplayError(ByVal str As String)
     mLabelError.Caption = str + " (" + Format(Err.Number) + " : " + Err.Description + ")"
     Err.Clear
 End Sub
