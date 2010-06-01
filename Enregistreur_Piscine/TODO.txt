@@ -1,6 +1,6 @@
 A faire
 
-...
+20100531 Corriger sauvegarde etat, marche pas bien
 
 ----
 Fait

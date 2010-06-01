@@ -4,22 +4,22 @@ Begin VB.Form FormMain
    ClientHeight    =   5835
    ClientLeft      =   1485
    ClientTop       =   1875
-   ClientWidth     =   12015
+   ClientWidth     =   11880
    Icon            =   "EcranEnregistreur.frx":0000
    LinkTopic       =   "Form1"
    ScaleHeight     =   5835
-   ScaleWidth      =   12015
+   ScaleWidth      =   11880
    Begin VB.CommandButton mBtnEraseEventList 
       Caption         =   "Vider liste"
       Height          =   375
-      Left            =   10560
+      Left            =   10440
       TabIndex        =   47
       Top             =   5400
       Width           =   1335
    End
    Begin VB.ListBox mListEvents 
       Height          =   4935
-      Left            =   9840
+      Left            =   9720
       TabIndex        =   46
       Top             =   360
       Width           =   2055
@@ -261,7 +261,7 @@ Begin VB.Form FormMain
    Begin VB.Label Label25 
       Caption         =   "Evènements"
       Height          =   255
-      Left            =   9960
+      Left            =   9840
       TabIndex        =   45
       Top             =   120
       Width           =   2055
@@ -390,7 +390,7 @@ Begin VB.Form FormMain
       Left            =   9360
       TabIndex        =   26
       Top             =   1680
-      Width           =   375
+      Width           =   255
    End
    Begin VB.Label Label1 
       Caption         =   "0"
@@ -469,11 +469,13 @@ Dim DataBuffer(7) As Long
 '1 Day = 60*24=1440 minutes
 Const DataSize As Integer = 1440
 ' Version for state file.
-Const StateFileVersion As Integer = 6
+Const StateFileVersion As Integer = 1
 ' State file name in app dir.
 Const StateFilename As String = "Sauvegarde.bin"
 'Change file name in app dir.
-Const ChangeFilename As String = "Changements.txt"
+Const ChangeFilename As String = "Changements.csv"
+
+Const EmptyEvent As String = "(vide)"
 
 ' Non-saved state
 Dim StartTime As Variant
@@ -513,6 +515,8 @@ Private Sub Form_Load()
     End If
     If Gain < 1 Then Gain = 1
     
+    If Not Simulation Then StartDevice
+    
     For i = 0 To 3
         If Int(mComboCanal.ItemData(i)) = Canal Then
             mComboCanal.ListIndex = i
@@ -546,6 +550,7 @@ End Sub
 Private Sub Form_Terminate()
     mBtnStop_Click
     SaveState
+    If Not Simulation Then StopDevice
 End Sub
 
 Private Sub mBtnEraseEventList_Click()
@@ -554,7 +559,7 @@ Private Sub mBtnEraseEventList_Click()
     mListEvents.Clear
     LastChange = -1
     ReDim RecentEvents(0)
-    RecentEvents(0) = "(vide)"
+    RecentEvents(0) = EmptyEvent
     
     For i = LBound(RecentEvents) To UBound(RecentEvents)
         mListEvents.AddItem RecentEvents(i)
@@ -589,8 +594,6 @@ Private Sub mCheckSimulation_Click()
 End Sub
 
 Private Sub mBtnStart_Click()
-    If Not Simulation Then StartDevice
-    
     mComboCanal_Click
     mComboGain_Click
     
@@ -601,12 +604,14 @@ Private Sub mBtnStart_Click()
     Else
         mLabelStatus.Caption = "Enregistrement en cours"
     End If
+    mCheckLED.value = 1
+    mTimer1_Timer
 End Sub
 
 Private Sub mBtnStop_Click()
     mTimer1.Enabled = False
     mLabelStatus.Caption = "Arrêté"
-    If Not Simulation Then StopDevice
+    mCheckLED.value = 0
     SaveState
 End Sub
 
@@ -696,7 +701,7 @@ Private Sub AddEvent(ByVal value As Integer)
     
     ' Add to array and list
     i = UBound(RecentEvents)
-    If i = 0 And RecentEvents(0) = "(vide)" Then
+    If i = 0 And RecentEvents(0) = EmptyEvent Then
         RecentEvents(0) = s
         mListEvents.Clear
         mListEvents.AddItem s
@@ -713,10 +718,11 @@ Private Sub AddEvent(ByVal value As Integer)
     Open App.Path & "\" & ChangeFilename For Append Access Write Lock Write As f
     
     If LOF(f) = 0 Then
-        Print #f, "Jour, Mois, Heure, Etat"
+        Print #f, "Jour; Mois; Heure; Etat"
     End If
     
-    Print #f, Replace(s, " ", ", ")
+    ' Use comma for US and ; for FR
+    Print #f, Replace(s, " ", "; ")
     
     Close f
     Exit Sub
@@ -844,12 +850,16 @@ Private Function LoadState() As Boolean
             
             Get f, , n
             ReDim RecentEvents(n)
-            For i = LBound(RecentEvents) To UBound(RecentEvents)
-                Get f, , n
-                s = String(n, " ")
-                Get f, , s
-                RecentEvents(i) = s
-            Next
+            If n > 0 Then
+                For i = LBound(RecentEvents) To UBound(RecentEvents)
+                    Get f, , n
+                    s = String(n, " ")
+                    Get f, , s
+                    RecentEvents(i) = s
+                Next
+            Else
+                RecentEvents(0) = EmptyEvent
+            End If
         
             Get f, , DataYesterday
             Get f, , DataToday
