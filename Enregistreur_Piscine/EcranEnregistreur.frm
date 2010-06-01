@@ -684,7 +684,7 @@ Private Sub ReadOne()
 End Sub
 
 Private Sub AddEvent(ByVal value As Integer)
-    Dim h As Integer, m As Integer, i As Integer
+    Dim h As Integer, m As Integer, i As Integer, f As Integer
     Dim s As String
     
     m = DayIndex Mod 60
@@ -693,7 +693,6 @@ Private Sub AddEvent(ByVal value As Integer)
     s = Format(Date, "dd mmm") + " " + _
         Format(h, "00") + ":" + Format(m, "00") + " " + _
         IIf(value = 1, "Marche", "Arret")
-    
     
     ' Add to array and list
     i = UBound(RecentEvents)
@@ -708,6 +707,22 @@ Private Sub AddEvent(ByVal value As Integer)
         mListEvents.AddItem s, 0
     End If
     
+    ' write to disk
+    On Error GoTo erreur_writechange
+    f = FreeFile
+    Open App.Path & "\" & ChangeFilename For Append Access Write Lock Write As f
+    
+    If LOF(f) = 0 Then
+        Print #f, "Jour, Mois, Heure, Etat"
+    End If
+    
+    Print #f, Replace(s, " ", ", ")
+    
+    Close f
+    Exit Sub
+    
+erreur_writechange:
+    DisplayError "Erreur écriture évènement"
 End Sub
 
 
