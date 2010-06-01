@@ -4,11 +4,26 @@ Begin VB.Form FormMain
    ClientHeight    =   5835
    ClientLeft      =   1485
    ClientTop       =   1875
-   ClientWidth     =   9795
+   ClientWidth     =   12015
    Icon            =   "EcranEnregistreur.frx":0000
    LinkTopic       =   "Form1"
    ScaleHeight     =   5835
-   ScaleWidth      =   9795
+   ScaleWidth      =   12015
+   Begin VB.CommandButton mBtnEraseEventList 
+      Caption         =   "Vider liste"
+      Height          =   375
+      Left            =   10560
+      TabIndex        =   47
+      Top             =   5400
+      Width           =   1335
+   End
+   Begin VB.ListBox mListEvents 
+      Height          =   4935
+      Left            =   9840
+      TabIndex        =   46
+      Top             =   360
+      Width           =   2055
+   End
    Begin VB.CheckBox mCheckSimulation 
       Caption         =   "Simulation"
       Height          =   255
@@ -243,6 +258,14 @@ Begin VB.Form FormMain
       Top             =   3720
       Width           =   1455
    End
+   Begin VB.Label Label25 
+      Caption         =   "Evènements"
+      Height          =   255
+      Left            =   9960
+      TabIndex        =   45
+      Top             =   120
+      Width           =   2055
+   End
    Begin VB.Label mLabelError 
       Caption         =   "(error placeholder)"
       BeginProperty Font 
@@ -445,14 +468,18 @@ Dim DataBuffer(7) As Long
 
 '1 Day = 60*24=1440 minutes
 Const DataSize As Integer = 1440
-Const DataVersion As Integer = 4
-
-Const FichierEtatCourrant As String = "EtatCourrant.bin"
+' Version for state file.
+Const StateFileVersion As Integer = 6
+' State file name in app dir.
+Const StateFilename As String = "Sauvegarde.bin"
+'Change file name in app dir.
+Const ChangeFilename As String = "Changements.txt"
 
 ' Non-saved state
 Dim StartTime As Variant
 Dim CurrentDataThreshold As Integer ' 0..255 for actual threshold
 Dim CurrentVoltCoef As Double
+Dim LastChange As Integer
 
 ' Saved state
 Dim Canal As Integer
@@ -463,12 +490,14 @@ Dim DayIndex As Integer
 Dim LastWritten As Integer
 Dim DataYesterday(DataSize) As Integer
 Dim DataToday(DataSize) As Integer
-
+Dim RecentEvents() As String
 
 Private Sub Form_Load()
     Dim i As Integer
 
+    LastChange = -1
     mLabelError.Caption = ""
+    mBtnEraseEventList_Click
 
     If Not LoadState Then
         Simulation = False
@@ -504,7 +533,7 @@ Private Sub Form_Load()
     mTimer1.Enabled = False
     
     mTextThreshold.Text = Threshold
-    If Simulation Then mCheckSimulation.Value = 1
+    If Simulation Then mCheckSimulation.value = 1
     
     Form_Paint
 End Sub
@@ -517,6 +546,19 @@ End Sub
 Private Sub Form_Terminate()
     mBtnStop_Click
     SaveState
+End Sub
+
+Private Sub mBtnEraseEventList_Click()
+    Dim i As Integer
+    
+    mListEvents.Clear
+    LastChange = -1
+    ReDim RecentEvents(0)
+    RecentEvents(0) = "(vide)"
+    
+    For i = LBound(RecentEvents) To UBound(RecentEvents)
+        mListEvents.AddItem RecentEvents(i)
+    Next
 End Sub
 
 Private Sub mComboCanal_Click()
@@ -539,15 +581,14 @@ Private Sub mComboGain_Click()
 End Sub
 
 Private Sub mCheckLED_Click()
-    If mCheckLED.Value = 1 Then LEDon Else LEDoff
+    If mCheckLED.value = 1 Then LEDon Else LEDoff
 End Sub
 
 Private Sub mCheckSimulation_Click()
-    Simulation = (mCheckSimulation.Value = 1)
+    Simulation = (mCheckSimulation.value = 1)
 End Sub
 
 Private Sub mBtnStart_Click()
-    
     If Not Simulation Then StartDevice
     
     mComboCanal_Click
@@ -570,7 +611,8 @@ Private Sub mBtnStop_Click()
 End Sub
 
 Private Sub mTextThreshold_Change()
-    Dim i, v As Integer
+    Dim i As Integer
+    Dim v As Integer
     
     i = 0
     On Error Resume Next ' Int() can fail
@@ -598,9 +640,10 @@ Private Sub mBtnUpdateNow_Click()
 End Sub
 
 Private Sub ReadOne()
-    Dim i As Integer
+    Dim i As Integer, value As Integer
     Dim s As String
-    Dim t, h, m As Variant
+    Dim t As Variant
+    Dim h As Integer, m As Integer
     
     t = Time
     h = Hour(t)
@@ -619,15 +662,54 @@ Private Sub ReadOne()
         mTextVolt(i).Text = Format(CurrentVoltCoef * DataBuffer(2 + i), "0.0 V")
     Next
 
+    value = -1
     If Canal >= 0 And Canal <= 3 Then
         ' canal 0..3 is data byte #2..6
-        DataToday(DayIndex) = DataBuffer(Canal + 2)
+        value = DataBuffer(Canal + 2)
+        DataToday(DayIndex) = value
         
         DrawPicture mPictureToday, DataToday
         DayIndex = DayIndex + 1
     End If
     
+    If value >= 0 Then
+        ' Process threshold change
+        value = IIf(value >= CurrentDataThreshold, 1, 0)
+        If value <> LastChange Then
+            AddEvent value
+            LastChange = value
+        End If
+    End If
+    
 End Sub
+
+Private Sub AddEvent(ByVal value As Integer)
+    Dim h As Integer, m As Integer, i As Integer
+    Dim s As String
+    
+    m = DayIndex Mod 60
+    h = Int(DayIndex / 60)
+
+    s = Format(Date, "dd mmm") + " " + _
+        Format(h, "00") + ":" + Format(m, "00") + " " + _
+        IIf(value = 1, "Marche", "Arret")
+    
+    
+    ' Add to array and list
+    i = UBound(RecentEvents)
+    If i = 0 And RecentEvents(0) = "(vide)" Then
+        RecentEvents(0) = s
+        mListEvents.Clear
+        mListEvents.AddItem s
+    Else
+        i = i + 1
+        ReDim Preserve RecentEvents(i)
+        RecentEvents(i) = s
+        mListEvents.AddItem s, 0
+    End If
+    
+End Sub
+
 
 Private Sub SwitchNextDay()
     Dim i As Integer
@@ -642,8 +724,8 @@ Private Sub SwitchNextDay()
 End Sub
 
 Private Sub SimulateRead()
-    Dim b, i As Integer
-    Dim t1, t2 As Long
+    Dim b As Integer, i As Integer
+    Dim t1 As Long, t2 As Long
     
     t1 = Hour(Time) * 3600 + Minute(Time) * 60 + Second(Time)
     t2 = Hour(StartTime) * 3600 + Minute(StartTime) * 60 + Second(StartTime)
@@ -659,9 +741,13 @@ Private Sub SimulateRead()
 End Sub
 
 Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
-    Dim w, h As Integer
-    Dim d, i, x, y, y1, y2, x1, x2, lastx As Integer
-    Dim xcoef, ycoef, tcoef As Double
+    Dim w As Integer, h As Integer
+    Dim d As Integer, i As Integer
+    Dim x As Integer, y As Integer
+    Dim y1 As Integer, y2 As Integer
+    Dim x1 As Integer, x2 As Integer
+    Dim lastx As Integer
+    Dim xcoef As Double, ycoef As Double, tcoef As Double
     
     picbox.Refresh
     
@@ -677,7 +763,6 @@ Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
     xcoef = (x2 - x1) / DataSize
     
     ' Couleurs: http://msdn.microsoft.com/en-us/library/d2dz8078(VS.80).aspx
-    
     picbox.ForeColor = QBColor(10) ' light green
     y = y2 - CurrentDataThreshold * ycoef
     picbox.Line (0, y)-(w, y)
@@ -723,30 +808,46 @@ Private Sub DrawPicture(ByRef picbox As PictureBox, ByRef data() As Integer)
 End Sub
 
 Private Function LoadState() As Boolean
-    Dim f, version As Integer
+    Dim i As Integer, f As Integer, n As Integer, version As Integer
+    Dim s As String
     version = 0
     
     On Error GoTo erreur_load
     f = FreeFile
-    Open App.Path & "\" & FichierEtatCourrant For Binary Access Read Lock Write As f
+    Open App.Path & "\" & StateFilename For Binary Access Read Lock Write As f
     
     If LOF(f) > 0 Then
         Get f, 1, version
                 
-        If version = DataVersion Then
+        If version = StateFileVersion Then
             Get f, , Canal
             Get f, , Gain
             Get f, , Threshold
             Get f, , Simulation
             Get f, , DayIndex
             Get f, , LastWritten
+            
+            Get f, , n
+            ReDim RecentEvents(n)
+            For i = LBound(RecentEvents) To UBound(RecentEvents)
+                Get f, , n
+                s = String(n, " ")
+                Get f, , s
+                RecentEvents(i) = s
+            Next
+        
             Get f, , DataYesterday
             Get f, , DataToday
         End If
     End If
     Close f
     
-    LoadState = (version = DataVersion)
+    mListEvents.Clear
+    For i = LBound(RecentEvents) To UBound(RecentEvents)
+        mListEvents.AddItem RecentEvents(i), 0
+    Next
+    
+    LoadState = (version = StateFileVersion)
     Exit Function
 
 erreur_load:
@@ -755,12 +856,13 @@ erreur_load:
 End Function
 
 Private Sub SaveState()
-    Dim f As Integer
+    Dim i As Integer, f As Integer, n As Integer
+    Dim s As String
     
     On Error GoTo erreur_save
     f = FreeFile
-    Open App.Path & "\" & FichierEtatCourrant For Binary Access Write Lock Write As f
-    Put f, 1, DataVersion
+    Open App.Path & "\" & StateFilename For Binary Access Write Lock Write As f
+    Put f, 1, StateFileVersion
     
     Put f, , Canal
     Put f, , Gain
@@ -768,9 +870,20 @@ Private Sub SaveState()
     Put f, , Simulation
     Put f, , DayIndex
     Put f, , LastWritten
+    
+    n = UBound(RecentEvents)
+    Put f, , n
+    For i = LBound(RecentEvents) To UBound(RecentEvents)
+        s = RecentEvents(i)
+        n = Len(s)
+        Put f, , n
+        Put f, , s
+    Next
+    
     Put f, , DataYesterday
     Put f, , DataToday
     Close f
+    
     Exit Sub
     
 erreur_save:
