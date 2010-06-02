@@ -1,6 +1,5 @@
 A faire
 
-20100531 Corriger sauvegarde etat, marche pas bien
 
 ----
 Fait
@@ -14,3 +13,4 @@ Fait
 20100531 Sauver changements d'etat dans fichier
 20100531 Sauver Timestamp dernier etat ecrit (pas utile)
 
+20100601 Corriger sauvegarde etat, marche pas bien

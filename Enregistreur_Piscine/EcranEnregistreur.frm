@@ -137,9 +137,9 @@ Begin VB.Form FormMain
       Begin VB.CommandButton mBtnUpdateNow 
          Caption         =   "Mettre à jour"
          Height          =   375
-         Left            =   4680
+         Left            =   4560
          TabIndex        =   40
-         Top             =   720
+         Top             =   800
          Width           =   1455
       End
       Begin VB.TextBox mTextVolt 
@@ -471,7 +471,7 @@ Const DataSize As Integer = 1440
 ' Version for state file.
 Const StateFileVersion As Integer = 1
 ' State file name in app dir.
-Const StateFilename As String = "Sauvegarde.bin"
+Const StateFilename As String = "Sauvegarde.txt"
 'Change file name in app dir.
 Const ChangeFilename As String = "Changements.csv"
 
@@ -482,12 +482,13 @@ Dim StartTime As Variant
 Dim CurrentDataThreshold As Integer ' 0..255 for actual threshold
 Dim CurrentVoltCoef As Double
 Dim LastChange As Integer
+Dim IsDeviceStarted As Boolean
 
 ' Saved state
 Dim Canal As Integer
 Dim Gain As Integer
 Dim Threshold As Integer ' en Volts pour affichage
-Dim Simulation As Boolean
+Dim IsSimulation As Boolean
 Dim DayIndex As Integer
 Dim LastWritten As Integer
 Dim DataYesterday(DataSize) As Integer
@@ -497,12 +498,13 @@ Dim RecentEvents() As String
 Private Sub Form_Load()
     Dim i As Integer
 
+    IsDeviceStarted = False
     LastChange = -1
     mLabelError.Caption = ""
     mBtnEraseEventList_Click
 
     If Not LoadState Then
-        Simulation = False
+        IsSimulation = False
         DayIndex = 0
         Canal = 0
         Gain = 1
@@ -514,8 +516,6 @@ Private Sub Form_Load()
         Next i
     End If
     If Gain < 1 Then Gain = 1
-    
-    If Not Simulation Then StartDevice
     
     For i = 0 To 3
         If Int(mComboCanal.ItemData(i)) = Canal Then
@@ -529,7 +529,7 @@ Private Sub Form_Load()
     ' Commence en mode arrete
     mBtnStop_Click
     
-    If Simulation Then
+    If IsSimulation Then
         mTimer1.Interval = 1000 ' 1 second
     Else
         mTimer1.Interval = 60000 ' 1 minute
@@ -537,7 +537,7 @@ Private Sub Form_Load()
     mTimer1.Enabled = False
     
     mTextThreshold.Text = Threshold
-    If Simulation Then mCheckSimulation.value = 1
+    If IsSimulation Then mCheckSimulation.value = 1
     
     Form_Paint
 End Sub
@@ -550,7 +550,6 @@ End Sub
 Private Sub Form_Terminate()
     mBtnStop_Click
     SaveState
-    If Not Simulation Then StopDevice
 End Sub
 
 Private Sub mBtnEraseEventList_Click()
@@ -575,7 +574,7 @@ Private Sub mComboGain_Click()
     Gain = Int(mComboGain.ItemData(mComboGain.ListIndex))
     CurrentVoltCoef = 30 / Gain / 256
 
-    If Not Simulation Then
+    If IsDeviceStarted Then
         SetGain 1, Gain
         SetGain 2, Gain
         SetGain 3, Gain
@@ -586,20 +585,30 @@ Private Sub mComboGain_Click()
 End Sub
 
 Private Sub mCheckLED_Click()
-    If mCheckLED.value = 1 Then LEDon Else LEDoff
+    If IsDeviceStarted Then
+        If mCheckLED.value = 1 Then LEDon Else LEDoff
+    End If
 End Sub
 
 Private Sub mCheckSimulation_Click()
-    Simulation = (mCheckSimulation.value = 1)
+    IsSimulation = (mCheckSimulation.value = 1)
 End Sub
 
 Private Sub mBtnStart_Click()
+    ' clear error field
+    mLabelError.Caption = ""
+    
+    If Not IsSimulation Then
+        StartDevice
+        IsDeviceStarted = True
+    End If
+    
     mComboCanal_Click
     mComboGain_Click
     
     mTimer1.Enabled = True
     StartTime = Time
-    If Simulation Then
+    If IsSimulation Then
         mLabelStatus.Caption = "Enregistrement (simulation)"
     Else
         mLabelStatus.Caption = "Enregistrement en cours"
@@ -612,6 +621,12 @@ Private Sub mBtnStop_Click()
     mTimer1.Enabled = False
     mLabelStatus.Caption = "Arrêté"
     mCheckLED.value = 0
+    
+    If IsDeviceStarted Then
+        StopDevice
+        IsDeviceStarted = False
+    End If
+    
     SaveState
 End Sub
 
@@ -656,7 +671,7 @@ Private Sub ReadOne()
     DayIndex = h * 60 + m
     mLabelTime.Caption = Format(h, "00") + "h " + Format(m, "00")
     
-    If Not Simulation Then
+    If IsDeviceStarted Then
         ReadData DataBuffer(0)
     Else
         SimulateRead
@@ -718,11 +733,11 @@ Private Sub AddEvent(ByVal value As Integer)
     Open App.Path & "\" & ChangeFilename For Append Access Write Lock Write As f
     
     If LOF(f) = 0 Then
-        Print #f, "Jour; Mois; Heure; Etat"
+        Print #f, "Jour;Mois;Heure;Etat"
     End If
     
     ' Use comma for US and ; for FR
-    Print #f, Replace(s, " ", "; ")
+    Print #f, Replace(s, " ", ";")
     
     Close f
     Exit Sub
@@ -831,38 +846,35 @@ End Sub
 Private Function LoadState() As Boolean
     Dim i As Integer, f As Integer, n As Integer, version As Integer
     Dim s As String
+    
     version = 0
     
     On Error GoTo erreur_load
     f = FreeFile
-    Open App.Path & "\" & StateFilename For Binary Access Read Lock Write As f
+    Open App.Path & "\" & StateFilename For Input Access Read Lock Write As f
     
     If LOF(f) > 0 Then
-        Get f, 1, version
+        Input #f, version
                 
         If version = StateFileVersion Then
-            Get f, , Canal
-            Get f, , Gain
-            Get f, , Threshold
-            Get f, , Simulation
-            Get f, , DayIndex
-            Get f, , LastWritten
+            Input #f, Canal
+            Input #f, Gain
+            Input #f, Threshold
+            Input #f, IsSimulation
+            Input #f, DayIndex
+            Input #f, LastWritten
             
-            Get f, , n
+            n = UBound(RecentEvents)
+            Input #f, n
             ReDim RecentEvents(n)
-            If n > 0 Then
-                For i = LBound(RecentEvents) To UBound(RecentEvents)
-                    Get f, , n
-                    s = String(n, " ")
-                    Get f, , s
-                    RecentEvents(i) = s
-                Next
-            Else
-                RecentEvents(0) = EmptyEvent
-            End If
-        
-            Get f, , DataYesterday
-            Get f, , DataToday
+            For i = 0 To n
+                Input #f, RecentEvents(i)
+            Next
+            
+            For i = 0 To DataSize - 1
+                Input #f, DataToday(i)
+                Input #f, DataYesterday(i)
+            Next
         End If
     End If
     Close f
@@ -876,46 +888,57 @@ Private Function LoadState() As Boolean
     Exit Function
 
 erreur_load:
-    ' ignore
+    ' Err 53 (File Not Found) is OK here
+    If Err.Number <> 53 Then
+        DisplayError "Chargement:"
+    End If
     LoadState = False
 End Function
 
 Private Sub SaveState()
     Dim i As Integer, f As Integer, n As Integer
-    Dim s As String
     
     On Error GoTo erreur_save
     f = FreeFile
-    Open App.Path & "\" & StateFilename For Binary Access Write Lock Write As f
-    Put f, 1, StateFileVersion
-    
-    Put f, , Canal
-    Put f, , Gain
-    Put f, , Threshold
-    Put f, , Simulation
-    Put f, , DayIndex
-    Put f, , LastWritten
+    Open App.Path & "\" & StateFilename For Output Access Write Lock Write As f
+    Write #f, StateFileVersion
+    Write #f, Canal
+    Write #f, Gain
+    Write #f, Threshold
+    Write #f, IsSimulation
+    Write #f, DayIndex
+    Write #f, LastWritten
     
     n = UBound(RecentEvents)
-    Put f, , n
+    Write #f, n
     For i = LBound(RecentEvents) To UBound(RecentEvents)
-        s = RecentEvents(i)
-        n = Len(s)
-        Put f, , n
-        Put f, , s
+        Write #f, RecentEvents(i)
     Next
     
-    Put f, , DataYesterday
-    Put f, , DataToday
+    For i = 0 To DataSize - 1
+        Write #f, DataToday(i)
+        Write #f, DataYesterday(i)
+    Next
     Close f
     
     Exit Sub
     
 erreur_save:
-    DisplayError "Etat pas sauvé"
+    DisplayError "Sauvegarde:"
 End Sub
 
 Private Sub DisplayError(ByVal str As String)
-    mLabelError.Caption = str + " (" + Format(Err.Number) + " : " + Err.Description + ")"
+    Dim s1 As String
+    
+    s1 = str + " (" + Format(Err.Number) + " : " + Err.Description + ")"
+    mLabelError.Caption = s1
+    
+    If mLabelError.ToolTipText = "" Then
+        mLabelError.ToolTipText = s1
+    Else
+        mLabelError.ToolTipText = s1 + " / " + mLabelError.ToolTipText
+    End If
+    
+    
     Err.Clear
 End Sub
