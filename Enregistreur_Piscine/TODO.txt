@@ -14,3 +14,14 @@ Fait
 20100531 Sauver Timestamp dernier etat ecrit (pas utile)
 
 20100601 Corriger sauvegarde etat, marche pas bien
+
+
+----
+Liens
+
+MSDN VB6:
+  http://msdn.microsoft.com/en-us/library/aa338032(v=VS.60).aspx
+
+
+Tutoriaux VB6:
+  http://www.vb6.us/
