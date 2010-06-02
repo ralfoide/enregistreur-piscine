@@ -517,6 +517,11 @@ Private Sub Form_Load()
     End If
     If Gain < 1 Then Gain = 1
     
+    If Not IsSimulation Then
+        StartDevice
+        IsDeviceStarted = True
+    End If
+    
     For i = 0 To 3
         If Int(mComboCanal.ItemData(i)) = Canal Then
             mComboCanal.ListIndex = i
@@ -550,6 +555,11 @@ End Sub
 Private Sub Form_Terminate()
     mBtnStop_Click
     SaveState
+    
+    If IsDeviceStarted Then
+        StopDevice
+        IsDeviceStarted = False
+    End If
 End Sub
 
 Private Sub mBtnEraseEventList_Click()
@@ -598,11 +608,6 @@ Private Sub mBtnStart_Click()
     ' clear error field
     mLabelError.Caption = ""
     
-    If Not IsSimulation Then
-        StartDevice
-        IsDeviceStarted = True
-    End If
-    
     mComboCanal_Click
     mComboGain_Click
     
@@ -621,11 +626,6 @@ Private Sub mBtnStop_Click()
     mTimer1.Enabled = False
     mLabelStatus.Caption = "Arrêté"
     mCheckLED.value = 0
-    
-    If IsDeviceStarted Then
-        StopDevice
-        IsDeviceStarted = False
-    End If
     
     SaveState
 End Sub
