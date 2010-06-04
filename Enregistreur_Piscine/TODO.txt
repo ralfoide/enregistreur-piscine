@@ -15,6 +15,12 @@ Fait
 
 20100601 Corriger sauvegarde etat, marche pas bien
 
+20100602 Demarrer automatiquement au lancement
+
+20100603 Demander confirmation avant de quitter
+20100603 Demarre correctement au lancement
+20100603 Arret correct meme en cours d'enregistrement
+20100603 Amelioration de l'affichage des boutons et etat
 
 ----
 Liens
@@ -25,3 +31,4 @@ MSDN VB6:
 
 Tutoriaux VB6:
   http://www.vb6.us/
+  

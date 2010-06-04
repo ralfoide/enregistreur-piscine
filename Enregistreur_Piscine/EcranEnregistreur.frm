@@ -121,6 +121,15 @@ Begin VB.Form FormMain
    End
    Begin VB.CommandButton mBtnStop 
       Caption         =   "Arrêter"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   495
       Left            =   1920
       TabIndex        =   8
@@ -252,6 +261,15 @@ Begin VB.Form FormMain
    End
    Begin VB.CommandButton mBtnStart 
       Caption         =   "Démarrer"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   495
       Left            =   240
       TabIndex        =   0
@@ -278,11 +296,11 @@ Begin VB.Form FormMain
          Strikethrough   =   0   'False
       EndProperty
       ForeColor       =   &H000000FF&
-      Height          =   255
+      Height          =   495
       Left            =   3600
       TabIndex        =   41
       Top             =   3960
-      Width           =   3735
+      Width           =   4095
    End
    Begin VB.Label Label21 
       Alignment       =   2  'Center
@@ -425,11 +443,21 @@ Begin VB.Form FormMain
    End
    Begin VB.Label mLabelStatus 
       Caption         =   "(status)"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00FF0000&
       Height          =   255
-      Left            =   4200
+      Left            =   4080
       TabIndex        =   13
       Top             =   3720
-      Width           =   3135
+      Width           =   3255
    End
    Begin VB.Label Label10 
       Caption         =   "Etat:"
@@ -437,7 +465,7 @@ Begin VB.Form FormMain
       Left            =   3600
       TabIndex        =   12
       Top             =   3720
-      Width           =   495
+      Width           =   375
    End
 End
 Attribute VB_Name = "FormMain"
@@ -445,11 +473,36 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+' Project: Enregistreur Piscine
+' Copyright (C) 2010 ralfoide gmail com.
+' License: GPLv3
+'
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+'
+' You should have received a copy of the GNU General Public License
+' along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 Option Explicit
 Option Base 0
 
+'MSDN VB6:
+'  http://msdn.microsoft.com/en-us/library/aa338032(v=VS.60).aspx
+'Tutoriaux VB6:
+'  http://www.vb6.us/
+  
 'Declare use of the DLL
 'K8047D.DLL interface
+
+' WIN32
+Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 'GENERAL PROCEDURES
 Private Declare Sub StartDevice Lib "k8047d.dll" ()
@@ -518,8 +571,15 @@ Private Sub Form_Load()
     If Gain < 1 Then Gain = 1
     
     If Not IsSimulation Then
+        On Error Resume Next
         StartDevice
-        IsDeviceStarted = True
+        If Err.Number = 0 Then
+            IsDeviceStarted = True
+            Sleep 300
+        Else
+            DisplayError "Erreur DLL"
+        End If
+        On Error GoTo 0
     End If
     
     For i = 0 To 3
@@ -530,9 +590,6 @@ Private Sub Form_Load()
             mComboGain.ListIndex = i
         End If
     Next
-    
-    ' Commence en mode arrete
-    mBtnStop_Click
     
     If IsSimulation Then
         mTimer1.Interval = 1000 ' 1 second
@@ -545,6 +602,14 @@ Private Sub Form_Load()
     If IsSimulation Then mCheckSimulation.value = 1
     
     Form_Paint
+
+    ' Commence en mode demarre
+    If IsDeviceStarted Or IsSimulation Then
+        DoStart
+    End If
+    
+    FormMain.Caption = FormMain.Caption + " " + Format(App.Major) + "." + Format(App.Minor) + "." + Format(App.Revision)
+
 End Sub
 
 Private Sub Form_Paint()
@@ -552,13 +617,29 @@ Private Sub Form_Paint()
     DrawPicture mPictureYesterday, DataYesterday
 End Sub
 
+
+
 Private Sub Form_Terminate()
+    ' Stop_click already calls SaveState
     mBtnStop_Click
-    SaveState
     
     If IsDeviceStarted Then
+        ' We need to manually refresh the LED state
+        mCheckLED_Click
+        Sleep 100
         StopDevice
         IsDeviceStarted = False
+    End If
+End Sub
+
+Private Sub Form_Unload(Cancel As Integer)
+    If mTimer1.Enabled = True Then
+        ' If currently recording, ask user for confirmation to quit
+        If MsgBox("Enregistrement piscine en cours. Etes vous sûr de vouloir quitter ?", _
+            vbYesNo + vbQuestion + vbApplicationModal, _
+            "Quitter Enregistreur Piscine ?") <> vbYes Then
+            Cancel = 1
+        End If
     End If
 End Sub
 
@@ -608,11 +689,16 @@ Private Sub mBtnStart_Click()
     ' clear error field
     mLabelError.Caption = ""
     
+    DoStart
+End Sub
+
+Private Sub DoStart()
     mComboCanal_Click
     mComboGain_Click
     
     mTimer1.Enabled = True
     StartTime = Time
+    mLabelStatus.ForeColor = &HFF0000
     If IsSimulation Then
         mLabelStatus.Caption = "Enregistrement (simulation)"
     Else
@@ -620,14 +706,21 @@ Private Sub mBtnStart_Click()
     End If
     mCheckLED.value = 1
     mTimer1_Timer
+
+    mBtnStart.Enabled = False
+    mBtnStop.Enabled = True
 End Sub
 
 Private Sub mBtnStop_Click()
     mTimer1.Enabled = False
     mLabelStatus.Caption = "Arrêté"
+    mLabelStatus.ForeColor = &H0&
     mCheckLED.value = 0
     
     SaveState
+    
+    mBtnStart.Enabled = True
+    mBtnStop.Enabled = False
 End Sub
 
 Private Sub mTextThreshold_Change()
