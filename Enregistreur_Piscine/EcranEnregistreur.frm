@@ -744,18 +744,16 @@ End Sub
 
 Private Sub SimulateRead()
     Dim b As Integer, i As Integer
-    Dim t1 As Long, t2 As Long
+    Dim m As Integer, h As Integer
     
-    t1 = hour(Time) * 3600 + minute(Time) * 60 + Second(Time)
-    t2 = hour(StartTime) * 3600 + minute(StartTime) * 60 + Second(StartTime)
-    LastHourMin = (t1 - t2) Mod DataSize
-    t1 = LastHourMin Mod 60
-    t2 = Int(LastHourMin / 60)
-    mLabelTime.Caption = Format(t2, "00") + "h " + Format(t1, "00")
+    m = LastIndex Mod 60
+    h = Int(LastIndex / 60)
+    LastHourMin = LastIndex
+    mLabelTime.Caption = Format(h, "00") + "h " + Format(m, "00")
     
-    b = 255 * ((Sin(LastHourMin * 3.14159265385 * 6 / DataSize) + 1) / 2)
+    b = (256 - 4 * 20) * ((Sin(LastHourMin * 3.14159265385 * 6 / DataSize) + 1) / 2)
     For i = 0 To 5
-        DataBuffer(i) = (256 + b - 40 + 20 * i) Mod 256
+        DataBuffer(i) = (256 + b - 40 + 10 + 20 * i) Mod 256
     Next
 End Sub
 
@@ -790,11 +788,11 @@ Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, 
     End If
     
     y1 = 1
-    y2 = h - 2
+    y2 = h - 1
     ycoef = (y2 - y1) / 256
     
     x1 = 1
-    x2 = w - 2
+    x2 = w - 1
     xcoef = (x2 - x1) / DataSize
     
     ' Couleurs: http://msdn.microsoft.com/en-us/library/d2dz8078(VS.80).aspx
@@ -819,13 +817,13 @@ Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, 
     hour = Int(LastHourMin / 60)
 
     For i = 0 To 25
-        x = i * tcoef - minute
+        x = Int(x1 + (i * 60 - minute) * xcoef)
         If x > DataSize Then
             Exit For
         ElseIf x >= 0 Then
-            If i Mod 6 = 0 Then
+            If hour Mod 6 = 0 Then
                 y = 0
-            ElseIf i Mod 2 = 0 Then
+            ElseIf hour Mod 2 = 0 Then
                 y = h / 2
             Else
                 y = h * 3 / 4
@@ -851,9 +849,10 @@ Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, 
         If index >= DataSize Then index = index - DataSize
         d = Data(index)
         
+        x = Int(x1 + i * xcoef)
+        
         If d >= 0 Then
             y = y2 - d * ycoef
-            x = x1 + i * xcoef
             If lastx < 0 Then
                 lastx = x
                 picbox.CurrentX = x
