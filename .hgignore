@@ -1,0 +1,5 @@
+syntax: glob
+*.bak
+
+glob:Enregistreur_Piscine/Changements.csv
+glob:Enregistreur_Piscine/Sauvegarde.txt

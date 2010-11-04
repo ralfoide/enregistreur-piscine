@@ -272,7 +272,7 @@ Begin VB.Form FormMain
       Width           =   1815
    End
    Begin VB.Label Label1 
-      Caption         =   "CH2: M/A pompe"
+      Caption         =   "CH2: M/A chauffage"
       Height          =   255
       Left            =   120
       TabIndex        =   31
@@ -306,7 +306,7 @@ Begin VB.Form FormMain
       Width           =   9015
    End
    Begin VB.Label Label11 
-      Caption         =   "CH1: M/A chauffage"
+      Caption         =   "CH1: M/A pompe"
       Height          =   255
       Left            =   240
       TabIndex        =   13
@@ -401,6 +401,8 @@ Const StateFileVersion As Integer = 2
 Const StateFilename As String = "Sauvegarde.txt"
 'Change file name in app dir.
 Const ChangeFilename As String = "Changements.csv"
+'Channel triggering events [0..3]
+Const ChannelForEvents As Integer = 0
 
 Const EmptyEvent As String = "(vide)"
 
@@ -645,11 +647,28 @@ Private Sub mTimer1_Timer()
 End Sub
 
 Private Sub mBtnUpdateNow_Click()
+    ' Hack to not change the index... we only want the real timer to update it
+    LastIndex = LastIndex - 1
     mTimer1_Timer
 End Sub
 
+Private Function DataToTemp(ByVal data As Integer) As Double
+    ' V=(T/100+0.23)*10
+    ' => V=(T+23)/10
+    ' d = v / 15 * 256
+    ' d = (t + 23) / 150 * 256
+    ' D*150/256=T+23
+    ' D*150/256-23=T
+    ' => T=D*0.59-23
+
+    Dim d As Double
+    d = data
+    d = (d * 150 / 256) - 23
+    DataToTemp = d
+End Function
+
 Private Sub ReadOne()
-    Dim c As Integer, value As Integer
+    Dim c As Integer, value As Integer, valueChange As Integer
     Dim s As String
     Dim t As Variant
     Dim h As Integer, m As Integer
@@ -673,8 +692,8 @@ Private Sub ReadOne()
     
     mTextLoggerIndex.Text = Format(DataBuffer(0)) + "," + Format(DataBuffer(1))
 
+    valueChange = -1
     For c = 0 To NumChannels - 1
-       
         ' canal 0..3 is data byte #2..5
         value = DataBuffer(c + 2)
         Channels(c).Data(LastIndex) = value
@@ -683,23 +702,26 @@ Private Sub ReadOne()
         mTextVolt(c).Text = Format(Channels(c).CoefDataToVolts * value, "0.0 V")
     
         If c = 2 And Channels(c).UseTemp Then
-            mTextTemp.Text = Format(101 * value / 256 - 23, "  0.0°")
+            mTextTemp.Text = Format(DataToTemp(value), "  0.0°")
         End If
     
-        If c = 0 And Channels(c).UseThreshold Then
-            ' Process threshold change on channel 0
-            value = IIf(value >= Channels(c).DataThreshold, 1, 0)
-            If value <> LastChange Then
-                AddEvent value
-                LastChange = value
+        If c = ChannelForEvents And Channels(c).UseThreshold Then
+            valueChange = value
             End If
-        End If
-    
     Next c
+    
+    ' Process threshold change on ChannelForEvents
+    valueChange = IIf(valueChange >= Channels(ChannelForEvents).DataThreshold, 1, 0)
+    If valueChange <> LastChange Then
+        AddEvent valueChange, _
+            IIf(Channels(1).data(LastIndex) >= Channels(1).DataThreshold, 1, 0), _
+            Channels(2).data(LastIndex)
+        LastChange = valueChange
+        End If
     
 End Sub
 
-Private Sub AddEvent(ByVal value As Integer)
+Private Sub AddEvent(ByVal value0 As Integer, ByVal value1 As Integer, ByVal temp0 As String)
     Dim h As Integer, m As Integer, i As Integer, f As Integer
     Dim s As String
     
@@ -708,7 +730,9 @@ Private Sub AddEvent(ByVal value As Integer)
 
     s = Format(Date, "dd mmm") + " " + _
         Format(h, "00") + ":" + Format(m, "00") + " " + _
-        IIf(value = 1, "Marche", "Arret")
+        IIf(value0 = 1, "M", "A") + " " + _
+        IIf(value1 = 1, "M", "A") + " " + _
+        Format(DataToTemp(temp0), "0.0")
     
     ' Add to array and list
     i = UBound(RecentEvents)
@@ -729,7 +753,7 @@ Private Sub AddEvent(ByVal value As Integer)
     Open App.Path & "\" & ChangeFilename For Append Access Write Lock Write As f
     
     If LOF(f) = 0 Then
-        Print #f, "Jour;Mois;Heure;Etat"
+        Print #f, "Jour;Mois;Heure;Pompe;Chauffage;Temp"
     End If
     
     ' Use comma for US and ; for FR
@@ -772,7 +796,7 @@ Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, 
     Dim lastx As Integer
     Dim hour As Integer, minute As Integer
     Dim xcoef As Double, ycoef As Double, tcoef As Double
-    Dim s As String
+    Dim s As String, lasts As String
     
     picbox.Refresh
     
@@ -844,14 +868,13 @@ Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, 
     ' ---- draw data curve
     lastx = -1
     index = LastIndex + 1
-    minute = (LastHourMin + 1) Mod 120
+    minute = (LastHourMin + 1) Mod 60
     For i = 0 To DataSize - 1
         If index >= DataSize Then index = index - DataSize
         d = Data(index)
         
-        x = Int(x1 + i * xcoef)
-        
         If d >= 0 Then
+        x = Int(x1 + i * xcoef)
             y = y2 - d * ycoef
             If lastx < 0 Then
                 lastx = x
@@ -864,12 +887,10 @@ Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, 
                 picbox.ForeColor = QBColor(0) ' noir
             End If
             picbox.Line -(x, y)
-        Else
-            lastx = -1
-        End If
     
         If channel.UseTemp And minute = 0 Then
-            s = Format(101 * d / 256 - 23, "0.0°")
+                s = Format(DataToTemp(d), "0.0°")
+                If s <> lasts Then
             picbox.CurrentX = Int(x - picbox.TextWidth(s) / 2)
             picbox.CurrentY = h + th
             picbox.Print s
@@ -877,10 +898,15 @@ Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, 
             picbox.CurrentX = x
             picbox.CurrentY = y
         End If
+                lasts = s
+            End If
+        Else
+            lastx = -1
+        End If
     
         index = index + 1
         minute = minute + 1
-        If minute = 120 Then minute = 0
+        If minute = 60 Then minute = 0
    
     Next i
 End Sub
