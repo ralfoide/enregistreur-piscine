@@ -1,5 +1,5 @@
 syntax: glob
 *.bak
 
-glob:Enregistreur_Piscine/Changements.csv
-glob:Enregistreur_Piscine/Sauvegarde.txt
+glob:Enregistreur_Piscine_VB/Changements.csv
+glob:Enregistreur_Piscine_VB/Sauvegarde.txt
