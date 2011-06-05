@@ -1,5 +1,11 @@
 syntax: glob
 *.bak
+*.suo
+*.user
+bin/Debug
+bin/Release
+obj/Debug
+obj/Release
 
 glob:Enregistreur_Piscine_VB/Changements.csv
 glob:Enregistreur_Piscine_VB/Sauvegarde.txt
