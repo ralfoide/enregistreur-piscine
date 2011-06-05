@@ -12,7 +12,7 @@
     <AssemblyName>K8047CsDemoApp</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <ApplicationIcon>TheNotifyIconExample.ico</ApplicationIcon>
+    <ApplicationIcon>MainForm.ico</ApplicationIcon>
     <TargetZone>LocalIntranet</TargetZone>
     <GenerateManifests>true</GenerateManifests>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
@@ -118,7 +118,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="TheNotifyIconExample.ico" />
+    <Content Include="MainForm.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

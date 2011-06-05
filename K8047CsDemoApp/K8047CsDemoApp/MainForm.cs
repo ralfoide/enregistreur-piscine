@@ -61,8 +61,26 @@ using System.Windows.Forms;
 
 namespace K8047CsDemoApp {
     public partial class MainForm : Form {
+
+        private k8047d mK8047 = null;
+        private TextBox[] mTextVolt = new TextBox[4];
+        private ListBox[] mListGain = new ListBox[4];
+
         public MainForm() {
             InitializeComponent();
+
+            // fill in arrays for controls per channel
+            int i = 0;
+            mTextVolt[i++] = textVolt0;
+            mTextVolt[i++] = textVolt1;
+            mTextVolt[i++] = textVolt2;
+            mTextVolt[i++] = textVolt3;
+
+            i = 0;
+            mListGain[i++] = listGain0;
+            mListGain[i++] = listGain1;
+            mListGain[i++] = listGain2;
+            mListGain[i++] = listGain3;
 
             // We create our Closing event handler here.
             this.FormClosing += MainForm_Bye_Bye;
@@ -736,5 +754,76 @@ namespace K8047CsDemoApp {
 
             // We now at this point, are completely event driven.
         }
+
+        private void listGain0_SelectedIndexChanged(object sender, EventArgs e) {
+            changeGain(0);
+        }
+
+        private void listGain1_SelectedIndexChanged(object sender, EventArgs e) {
+            changeGain(1);
+        }
+
+        private void listGain2_SelectedIndexChanged(object sender, EventArgs e) {
+            changeGain(2);
+        }
+
+        private void listGain3_SelectedIndexChanged(object sender, EventArgs e) {
+            changeGain(3);
+        }
+
+        private void checkLed_CheckedChanged(object sender, EventArgs e) {
+            connect();
+            mK8047.Led = checkLed.Checked;
+            mStatusStrip.Text = "LED changed";
+        }
+
+        private void buttonQuit_Click(object sender, EventArgs e) {
+            MainForm_exitToolStripMenuItem_Click(sender, e);
+        }
+
+        private void buttonAcquire_Click(object sender, EventArgs e) {
+            acquire();
+        }
+
+        private void buttonConnect_Click(object sender, EventArgs e) {
+            connect();
+        }
+
+        private void connect() {
+            if (mK8047 != null) return;
+
+            mK8047 = new k8047d();
+            for (int i = 0; i < 4; i++) {
+                mK8047.setChannelGain(i, 3);
+                mListGain[i].SelectedIndex = 0;
+            }
+            mStatusStrip.Text = "Connected";
+        }
+
+        private void changeGain(int channel) {
+            connect();
+            string value = mListGain[channel].SelectedValue as string;
+            int maxVolts = Convert.ToInt32(value.Replace('V', ' ').Trim());
+            mK8047.setChannelGain(channel, maxVolts);
+            mStatusStrip.Text = String.Format("Gain changed on {0} to {1} V", channel, maxVolts);
+        }
+
+        private void acquire() {
+            connect();
+            double[] volts = mK8047.read();
+
+            for (int i = 0; i < 4; i++) {
+                mTextVolt[i].Text = String.Format("{0,F2} V", volts[i]);
+            }
+        }
+
+        public void Dispose() {
+            if (mK8047 != null) {
+                mK8047.Dispose();
+                mK8047 = null;
+            }
+            base.Dispose();
+        }
+        
     }
 }

@@ -157,7 +157,7 @@ namespace K8047CsDemoApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool NotifyIconMouseDoubleRightClickShowsContextMenuStrip {
             get {
                 return ((bool)(this["NotifyIconMouseDoubleRightClickShowsContextMenuStrip"]));
@@ -205,7 +205,7 @@ namespace K8047CsDemoApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool NotifyIconMouseSingleRightClickShowsForm1 {
             get {
                 return ((bool)(this["NotifyIconMouseSingleRightClickShowsForm1"]));
@@ -229,7 +229,7 @@ namespace K8047CsDemoApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool Form1MouseSingleLeftClickUsesDifferentContextMenuStrip {
             get {
                 return ((bool)(this["Form1MouseSingleLeftClickUsesDifferentContextMenuStrip"]));
@@ -253,7 +253,7 @@ namespace K8047CsDemoApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool Form1MouseSingleLeftClickShowsContextMenuStrip {
             get {
                 return ((bool)(this["Form1MouseSingleLeftClickShowsContextMenuStrip"]));
@@ -313,7 +313,7 @@ namespace K8047CsDemoApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool Form1MouseDoubleRightClickMinimizesForm1 {
             get {
                 return ((bool)(this["Form1MouseDoubleRightClickMinimizesForm1"]));

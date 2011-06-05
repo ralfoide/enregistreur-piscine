@@ -36,7 +36,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="NotifyIconMouseDoubleRightClickShowsContextMenuStrip" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+      <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="NotifyIconMouseSingleLeftClickShowsContextMenuStrip" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
@@ -48,19 +48,19 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="NotifyIconMouseSingleRightClickShowsForm1" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="Form1MouseSingleRightClickDisabled" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="Form1MouseSingleLeftClickUsesDifferentContextMenuStrip" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="Form1MouseSingleRightClickMinimizesForm1" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="Form1MouseSingleLeftClickShowsContextMenuStrip" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="Form1MouseSingleLeftClickMinimizesForm1" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
@@ -75,7 +75,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="Form1MouseDoubleRightClickMinimizesForm1" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="StartUsSingleInstanceOnly" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
