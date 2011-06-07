@@ -1,4 +1,26 @@
-﻿namespace K8047CsDemoApp {
+﻿/*
+ * Example of Velleman K8047 DLL access in C#.
+ * ---------
+ * 
+ * Project: Enregistreur Piscine
+ * Copyright (C) 2011 ralfoide gmail com,
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+namespace K8047CsDemoApp {
     partial class MainForm {
         /// <summary>
         /// Required designer variable.
@@ -35,6 +57,8 @@
             this.differentContextMenuExampleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeThisMenuToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.mTextSeq1 = new System.Windows.Forms.TextBox();
+            this.mTextSeq0 = new System.Windows.Forms.TextBox();
             this.buttonAcquire = new System.Windows.Forms.Button();
             this.textVolt3 = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -49,14 +73,16 @@
             this.label1 = new System.Windows.Forms.Label();
             this.listGain0 = new System.Windows.Forms.ListBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.buttonConnect = new System.Windows.Forms.Button();
             this.buttonQuit = new System.Windows.Forms.Button();
             this.checkLed = new System.Windows.Forms.CheckBox();
             this.mStatusStrip = new System.Windows.Forms.StatusStrip();
-            this.buttonConnect = new System.Windows.Forms.Button();
+            this.mStatusText = new System.Windows.Forms.ToolStripStatusLabel();
             this.MainForm_contextMenuStrip1.SuspendLayout();
             this.MainForm_contextMenuStrip2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.mStatusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainForm_NotifyIcon
@@ -123,6 +149,8 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.mTextSeq1);
+            this.groupBox1.Controls.Add(this.mTextSeq0);
             this.groupBox1.Controls.Add(this.buttonAcquire);
             this.groupBox1.Controls.Add(this.textVolt3);
             this.groupBox1.Controls.Add(this.label4);
@@ -142,6 +170,22 @@
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Channels";
+            // 
+            // mTextSeq1
+            // 
+            this.mTextSeq1.Location = new System.Drawing.Point(64, 116);
+            this.mTextSeq1.Name = "mTextSeq1";
+            this.mTextSeq1.ReadOnly = true;
+            this.mTextSeq1.Size = new System.Drawing.Size(52, 20);
+            this.mTextSeq1.TabIndex = 14;
+            // 
+            // mTextSeq0
+            // 
+            this.mTextSeq0.Location = new System.Drawing.Point(6, 116);
+            this.mTextSeq0.Name = "mTextSeq0";
+            this.mTextSeq0.ReadOnly = true;
+            this.mTextSeq0.Size = new System.Drawing.Size(52, 20);
+            this.mTextSeq0.TabIndex = 13;
             // 
             // buttonAcquire
             // 
@@ -300,6 +344,17 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Control";
             // 
+            // buttonConnect
+            // 
+            this.buttonConnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonConnect.Location = new System.Drawing.Point(210, 20);
+            this.buttonConnect.Name = "buttonConnect";
+            this.buttonConnect.Size = new System.Drawing.Size(75, 23);
+            this.buttonConnect.TabIndex = 2;
+            this.buttonConnect.Text = "Connect";
+            this.buttonConnect.UseVisualStyleBackColor = true;
+            this.buttonConnect.Click += new System.EventHandler(this.buttonConnect_Click);
+            // 
             // buttonQuit
             // 
             this.buttonQuit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -324,22 +379,19 @@
             // 
             // mStatusStrip
             // 
+            this.mStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mStatusText});
             this.mStatusStrip.Location = new System.Drawing.Point(0, 230);
             this.mStatusStrip.Name = "mStatusStrip";
             this.mStatusStrip.Size = new System.Drawing.Size(403, 22);
             this.mStatusStrip.TabIndex = 4;
-            this.mStatusStrip.Text = "Not connected";
             // 
-            // buttonConnect
+            // mStatusText
             // 
-            this.buttonConnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonConnect.Location = new System.Drawing.Point(210, 18);
-            this.buttonConnect.Name = "buttonConnect";
-            this.buttonConnect.Size = new System.Drawing.Size(75, 23);
-            this.buttonConnect.TabIndex = 2;
-            this.buttonConnect.Text = "Connect";
-            this.buttonConnect.UseVisualStyleBackColor = true;
-            this.buttonConnect.Click += new System.EventHandler(this.buttonConnect_Click);
+            this.mStatusText.Name = "mStatusText";
+            this.mStatusText.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
+            this.mStatusText.Size = new System.Drawing.Size(86, 17);
+            this.mStatusText.Text = "Not connected";
             // 
             // MainForm
             // 
@@ -360,6 +412,8 @@
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.mStatusStrip.ResumeLayout(false);
+            this.mStatusStrip.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -395,6 +449,9 @@
         private System.Windows.Forms.ListBox listGain0;
         private System.Windows.Forms.StatusStrip mStatusStrip;
         private System.Windows.Forms.Button buttonConnect;
+        private System.Windows.Forms.ToolStripStatusLabel mStatusText;
+        private System.Windows.Forms.TextBox mTextSeq1;
+        private System.Windows.Forms.TextBox mTextSeq0;
     }
 }
 

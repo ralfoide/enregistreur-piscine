@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+<PlatformTarget>x86</PlatformTarget>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{315B75BC-69F2-417D-B682-FB0453C362D5}</ProjectGuid>
@@ -118,6 +119,15 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="FASTTime32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="K8047D.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="K8047E.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="MainForm.ico" />
   </ItemGroup>
   <ItemGroup>

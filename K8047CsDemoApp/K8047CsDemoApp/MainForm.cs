@@ -1,4 +1,26 @@
-﻿using System;
+﻿/*
+ * Example of Velleman K8047 DLL access in C#.
+ * ---------
+ * 
+ * Project: Enregistreur Piscine
+ * Copyright (C) 2011 ralfoide gmail com,
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -65,6 +87,7 @@ namespace K8047CsDemoApp {
         private k8047d mK8047 = null;
         private TextBox[] mTextVolt = new TextBox[4];
         private ListBox[] mListGain = new ListBox[4];
+        private bool mInternalSelectionChange = false;
 
         public MainForm() {
             InitializeComponent();
@@ -81,6 +104,11 @@ namespace K8047CsDemoApp {
             mListGain[i++] = listGain1;
             mListGain[i++] = listGain2;
             mListGain[i++] = listGain3;
+            for (i = 0; i < 4; i++) {
+                mInternalSelectionChange = true; 
+                mListGain[i].SelectedIndex = 0;
+                mInternalSelectionChange = false;
+            }
 
             // We create our Closing event handler here.
             this.FormClosing += MainForm_Bye_Bye;
@@ -772,9 +800,10 @@ namespace K8047CsDemoApp {
         }
 
         private void checkLed_CheckedChanged(object sender, EventArgs e) {
-            connect();
-            mK8047.Led = checkLed.Checked;
-            mStatusStrip.Text = "LED changed";
+            if (connect()) {
+                mK8047.Led = checkLed.Checked;
+                mStatusText.Text = "LED changed";
+            }
         }
 
         private void buttonQuit_Click(object sender, EventArgs e) {
@@ -789,31 +818,45 @@ namespace K8047CsDemoApp {
             connect();
         }
 
-        private void connect() {
-            if (mK8047 != null) return;
-
-            mK8047 = new k8047d();
-            for (int i = 0; i < 4; i++) {
-                mK8047.setChannelGain(i, 3);
-                mListGain[i].SelectedIndex = 0;
+        private bool connect() {
+            if (mK8047 == null) {
+                try {
+                    mK8047 = new k8047d();
+                    mK8047.start();
+                    for (int i = 0; i < 4; i++) {
+                        mK8047.setChannelGain(i, 3);
+                        mInternalSelectionChange = true;
+                        mListGain[i].SelectedIndex = 0;
+                        mInternalSelectionChange = false;
+                    }
+                    mStatusText.Text = "Connected";
+                } catch (Exception e) {
+                    mStatusText.Text = e.Message;
+                }
             }
-            mStatusStrip.Text = "Connected";
+            return mK8047 != null && mK8047.Started; ;
         }
 
         private void changeGain(int channel) {
-            connect();
-            string value = mListGain[channel].SelectedValue as string;
-            int maxVolts = Convert.ToInt32(value.Replace('V', ' ').Trim());
-            mK8047.setChannelGain(channel, maxVolts);
-            mStatusStrip.Text = String.Format("Gain changed on {0} to {1} V", channel, maxVolts);
+            if (!mInternalSelectionChange && connect()) {
+                string value = mListGain[channel].SelectedItem as string;
+                int maxVolts = Convert.ToInt32(value.Replace('V', ' ').Trim());
+                mK8047.setChannelGain(channel, maxVolts);
+                mStatusText.Text = String.Format("Gain changed on {0} to {1} V", channel, maxVolts);
+            }
         }
 
         private void acquire() {
-            connect();
-            double[] volts = mK8047.read();
+            if (connect()) {
+                double[] volts = mK8047.read();
 
-            for (int i = 0; i < 4; i++) {
-                mTextVolt[i].Text = String.Format("{0,F2} V", volts[i]);
+                for (int i = 0; i < 4; i++) {
+                    mTextVolt[i].Text = String.Format("{0:0.00} V", volts[i]);
+                }
+
+                int[] seq = mK8047.LastSequence;
+                mTextSeq0.Text = Convert.ToString(seq[0]);
+                mTextSeq1.Text = Convert.ToString(seq[1]);
             }
         }
 

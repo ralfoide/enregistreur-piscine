@@ -1,7 +1,22 @@
 ﻿/*
- * K8047 DLL access.
- * 2011 copyright ralfoide gmail com
- * GPL v3
+ * Example of Velleman K8047 DLL access in C#.
+ * ---------
+ * 
+ * Project: Enregistreur Piscine
+ * Copyright (C) 2011 ralfoide gmail com,
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -22,6 +37,7 @@ namespace K8047CsDemoApp {
         private bool mLastLedState = false;
         private int[] mChannelVolts = new int[4];
         private double[] mReadVolts = new double[4];
+        private int[] mAcqSequence = new int[2];
 
         public bool Led {
             get {
@@ -31,6 +47,18 @@ namespace K8047CsDemoApp {
                 checkStarted();
                 mLastLedState = value;
                 if (value) LEDon(); else LEDoff();
+            }
+        }
+
+        public bool Started {
+            get {
+                return mStarted;
+            }
+        }
+
+        public int[] LastSequence {
+            get {
+                return mAcqSequence;
             }
         }
 
@@ -94,6 +122,14 @@ namespace K8047CsDemoApp {
             int[] temp = new int[8];
 
             ReadData(temp);
+
+            mAcqSequence[0] = temp[0];
+            mAcqSequence[1] = temp[1];
+
+            for (int i = 0; i < 4; i++) {
+                int b = temp[2 + i];
+                mReadVolts[i] = ((double)b / 256.0) * mChannelVolts[i];
+            }
 
             return mReadVolts;
         }
