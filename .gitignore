@@ -1,0 +1,9 @@
+*.bak
+*.suo
+*.user
+bin/Debug
+bin/Release
+obj/Debug
+obj/Release
+Enregistreur_Piscine_VB/Changements.csv
+Enregistreur_Piscine_VB/Sauvegarde.txt
