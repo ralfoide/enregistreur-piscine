@@ -408,7 +408,6 @@ Const EmptyEvent As String = "(vide)"
 
 ' Non-saved state
 Dim StartTime As Variant
-Dim LastChange As Integer
 Dim IsDeviceStarted As Boolean
 
 ' Saved state
@@ -425,6 +424,7 @@ Private Type ChannelData
     CoefDataToVolts As Double
     CoefVoltsToData As Double
     DataThreshold As Integer ' 0..255 for actual threshold
+    LastState As Integer
 End Type
 
 Dim Threshold As Integer ' en Volts pour affichage
@@ -440,7 +440,6 @@ Private Sub Form_Load()
     Dim c As Integer
 
     IsDeviceStarted = False
-    LastChange = -1
     mLabelError.Caption = ""
     mBtnEraseEventList_Click
 
@@ -465,6 +464,7 @@ Private Sub Form_Load()
 
             .VoltThreshold = 10
             .DataThreshold = -1
+            .LastState = -1
 
             For i = 0 To DataSize - 1
                 .Data(i) = -1
@@ -544,16 +544,22 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub
 
 Private Sub mBtnEraseEventList_Click()
+    Dim c As Integer
     Dim i As Integer
     
     mListEvents.Clear
-    LastChange = -1
     ReDim RecentEvents(0)
     RecentEvents(0) = EmptyEvent
     
     For i = LBound(RecentEvents) To UBound(RecentEvents)
         mListEvents.AddItem RecentEvents(i)
     Next
+    
+    ' reset LastState
+    For c = 0 To NumChannels - 1
+        Channels(c).LastState = -1
+    Next c
+
 End Sub
 
 Private Sub SetupGain()
@@ -640,7 +646,7 @@ End Sub
 
 Private Sub mTimer1_Timer()
     ReadOne
-    ' Save sate every hour
+    ' Save state every hour
     If LastIndex Mod 60 = 0 Then
         SaveState
     End If
@@ -652,7 +658,7 @@ Private Sub mBtnUpdateNow_Click()
     mTimer1_Timer
 End Sub
 
-Private Function DataToTemp(ByVal data As Integer) As Double
+Private Function DataToTemp(ByVal Data As Integer) As Double
     ' V=(T/100+0.23)*10
     ' => V=(T+23)/10
     ' d = v / 15 * 256
@@ -662,7 +668,7 @@ Private Function DataToTemp(ByVal data As Integer) As Double
     ' => T=D*0.59-23
 
     Dim d As Double
-    d = data
+    d = Data
     d = (d * 150 / 256) - 23
     DataToTemp = d
 End Function
@@ -672,6 +678,8 @@ Private Sub ReadOne()
     Dim s As String
     Dim t As Variant
     Dim h As Integer, m As Integer
+    Dim newState As Integer
+    Dim changed As Boolean
     
     t = Time
     h = hour(t)
@@ -705,23 +713,26 @@ Private Sub ReadOne()
             mTextTemp.Text = Format(DataToTemp(value), "  0.0°")
         End If
     
-        If c = ChannelForEvents And Channels(c).UseThreshold Then
-            valueChange = value
+        If Channels(c).UseThreshold Then
+            newState = IIf(value >= Channels(c).DataThreshold, 1, 0)
+            If newState <> Channels(c).LastState Then
+                changed = True
+                Channels(c).LastState = newState
             End If
+        End If
     Next c
     
     ' Process threshold change on ChannelForEvents
-    valueChange = IIf(valueChange >= Channels(ChannelForEvents).DataThreshold, 1, 0)
-    If valueChange <> LastChange Then
-        AddEvent valueChange, _
-            IIf(Channels(1).data(LastIndex) >= Channels(1).DataThreshold, 1, 0), _
-            Channels(2).data(LastIndex)
-        LastChange = valueChange
-        End If
+    If changed Then
+        AddEvent _
+            IIf(Channels(0).Data(LastIndex) >= Channels(0).DataThreshold, 1, 0), _
+            IIf(Channels(1).Data(LastIndex) >= Channels(1).DataThreshold, 1, 0), _
+            Channels(2).Data(LastIndex)
+    End If
     
 End Sub
 
-Private Sub AddEvent(ByVal value0 As Integer, ByVal value1 As Integer, ByVal temp0 As String)
+Private Sub AddEvent(ByVal stateCh0 As Integer, ByVal stateCh1 As Integer, ByVal dataCh2 As String)
     Dim h As Integer, m As Integer, i As Integer, f As Integer
     Dim s As String
     
@@ -730,9 +741,11 @@ Private Sub AddEvent(ByVal value0 As Integer, ByVal value1 As Integer, ByVal tem
 
     s = Format(Date, "dd mmm") + " " + _
         Format(h, "00") + ":" + Format(m, "00") + " " + _
-        IIf(value0 = 1, "M", "A") + " " + _
-        IIf(value1 = 1, "M", "A") + " " + _
-        Format(DataToTemp(temp0), "0.0")
+        IIf(stateCh0 = 1, "M", "A") + " " + _
+        IIf(stateCh1 = 1, "M", "A") + " "
+    If dataCh2 > 0 Then
+        s = s + Format(DataToTemp(dataCh2), "0.0")
+    End If
     
     ' Add to array and list
     i = UBound(RecentEvents)
@@ -784,7 +797,6 @@ End Sub
 Private Sub DrawChannel(channel As Integer)
     DrawChannel_ Channels(channel), Channels(channel).Data, mPicture(channel)
 End Sub
-
 
 Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, ByRef picbox As PictureBox)
     Dim w As Integer, h As Integer, h2 As Integer
@@ -888,16 +900,16 @@ Private Sub DrawChannel_(ByRef channel As ChannelData, ByRef Data() As Integer, 
             End If
             picbox.Line -(x, y)
     
-        If channel.UseTemp And minute = 0 Then
+            If channel.UseTemp And minute = 0 And d > 0 Then
                 s = Format(DataToTemp(d), "0.0°")
                 If s <> lasts Then
-            picbox.CurrentX = Int(x - picbox.TextWidth(s) / 2)
-            picbox.CurrentY = h + th
-            picbox.Print s
+                    picbox.CurrentX = Int(x - picbox.TextWidth(s) / 2)
+                    picbox.CurrentY = h + th
+                    picbox.Print s
             
-            picbox.CurrentX = x
-            picbox.CurrentY = y
-        End If
+                    picbox.CurrentX = x
+                    picbox.CurrentY = y
+                End If
                 lasts = s
             End If
         Else

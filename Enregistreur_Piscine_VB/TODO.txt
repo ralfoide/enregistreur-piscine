@@ -2,6 +2,12 @@ A faire
 
 
 ----
+2.0.7
+20120613 Event threshold pour ch1 et ch2 independents
+20120613 Ne pas afficher temp C si data == 0
+
+
+----
 Fait
 
 20100531 Controle gain
