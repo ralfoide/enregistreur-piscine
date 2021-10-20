@@ -1,20 +1,70 @@
 #!/usr/bin/python3
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from io import StringIO
+
+import json
 import logging
-import pifacedigitalio
 import time
 import threading
 import signal
-import systemd.daemon
+
+_HAS_SYSTEMD = True
+try:
+    import systemd.daemon
+except ModuleNotFoundError:
+    _HAS_SYSTEMD = False
+
+_HAS_PIFACE = True
+try:
+    import pifacedigitalio
+except ModuleNotFoundError:
+    _HAS_PIFACE = False
 
 _HTTP_PORT = 8080
 _NUM_OUT = 8
 _running = True
 _piface = None
 _listeners = None
+_data = None
 _httpd = None
 _httpd_thread = None
+
+class MockPiFace:
+    def __init__(self):
+        logging.info("Using Mock PiFace IO")
+        self.input_pins  = [ self ] * _NUM_OUT
+        self.output_pins = [ self ] * _NUM_OUT
+    
+    def turn_on(self):
+        pass
+
+    def turn_off(self):
+        pass
+
+
+class PiscineData:
+    def __init__(self):
+        logging.info("Piscine data created")
+        self.lock = threading.Lock()
+        self.events = ()  # { "state": _data.getState(), "epoch": 42 }
+        self.state = 0
+
+    def getState(self):
+        with self.lock:
+            return self.state
+
+    def getEvents(self):
+        with self.lock:
+            return self.events
+    
+    def updatePin(self, pin_num, is_on):
+        """ pin_num: 0.._NUM_OUT, is_on: Boolean. """
+        with self.lock:
+            if is_on:
+                self.state = self.state | (1 << pin_num)
+            else:
+                self.state = self.state & (0xFF - (1 << pin_num))
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -26,7 +76,19 @@ class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         logging.info("GET request,\nPath: %s\nHeaders:\n%s\n", str(self.path), str(self.headers))
         self._set_response()
-        self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
+        data = None
+        if self.path == "/current":
+            data = { "state": _data.getState(), "epoch": 42 }
+        elif self.path == "/last_events":
+            data = { "events": _data.getEvents() }
+        
+        if data:
+            io = StringIO()
+            json.dump(data, io)
+            s = io.getvalue()
+            self.wfile.write(s.encode('utf-8'))
+        else:
+            self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
 
 
 def signal_handler(signum, frame):
@@ -46,12 +108,18 @@ def setup():
     print("Setup logger")
     logging.basicConfig(level=logging.INFO)
     logging.info("Starting up")
-    signal.signal(signal.SIGINT, signal_handler)    
-    signal.signal(signal.SIGTERM, signal_handler)    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    global _data
+    _data = PiscineData()
 
     logging.info("Setup PiFace")
     global _piface
-    _piface = pifacedigitalio.PiFaceDigital()
+    if _HAS_PIFACE:
+        _piface = pifacedigitalio.PiFaceDigital()
+    else:
+        _piface = MockPiFace()
 
     ## Setup input event handlers
     #global _listeners
@@ -75,7 +143,8 @@ def setup():
 
     logging.info("Startup complete")
     # Tell systemd that our service is ready
-    systemd.daemon.notify("READY=1")
+    if _HAS_SYSTEMD:
+        systemd.daemon.notify("READY=1")
 
 def http_serve_forever_async():
     global _httpd
