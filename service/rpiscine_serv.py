@@ -29,6 +29,14 @@ _listeners = None
 _data = None
 _httpd = None
 _httpd_thread = None
+_piface_thread = None
+
+def getEpoch():
+    if _HAS_PIFACE:
+        return int(time.time())
+    else:
+        return 42    # mock for mock piface
+
 
 class MockPiFace:
     def __init__(self):
@@ -61,10 +69,15 @@ class PiscineData:
     def updatePin(self, pin_num, is_on):
         """ pin_num: 0.._NUM_OUT, is_on: Boolean. """
         with self.lock:
+            st_old = self.state
+            st_new = st_old
             if is_on:
-                self.state = self.state | (1 << pin_num)
+                st_new = st_old | (1 << pin_num)
             else:
-                self.state = self.state & (0xFF - (1 << pin_num))
+                st_new = st_old & (0xFF - (1 << pin_num))
+            if st_new != st_old:
+                self.state = st_new
+                self.events.append( { "state": st_new, "epoch": getEpoch() } )
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -78,10 +91,10 @@ class MyHandler(BaseHTTPRequestHandler):
         self._set_response()
         data = None
         if self.path == "/current":
-            data = { "state": _data.getState(), "epoch": 42 }
+            data = { "state": _data.getState(), "epoch": getEpoch() }
         elif self.path == "/last_events":
             data = { "events": _data.getEvents() }
-        
+
         if data:
             io = StringIO()
             json.dump(data, io)
@@ -108,6 +121,7 @@ def setup():
     print("Setup logger")
     logging.basicConfig(level=logging.INFO)
     logging.info("Starting up")
+    logging.info("Has systemd: %s, has piface: %s", _HAS_SYSTEMD, _HAS_PIFACE)
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
@@ -147,24 +161,38 @@ def setup():
         systemd.daemon.notify("READY=1")
 
 def http_serve_forever_async():
-    global _httpd
     with _httpd:
         logging.info("Http server started")
         _httpd.serve_forever()
     logging.info("Http server stopped")
 
+def piface_monitor_async():
+    logging.info("Piface thread started")
+    last = [ 0 ] * _NUM_OUT
+    while _running:
+        for p in range(_NUM_OUT):
+            v = _piface.input_pins[p].value
+            if v != last[p]:
+                last[p] = v
+                _data.updatePin(p, v != 0)
+        time.sleep(1) 
+    logging.info("Piface thread stopped")
+
 def serv():
-    logging.info("Start serv")
+    logging.info("Start loop")
 
     # Run the httpd server in a thread.
     # Note this will require synchronizing access to data.
     _httpd_thread = threading.Thread(target=http_serve_forever_async, daemon=True)
     _httpd_thread.start()
 
+    _piface_thread = threading.Thread(target=piface_monitor_async, daemon=True)
+    _piface_thread.start()
+
+    # TBD replace by a threading.barrier?
     while _running:
-        logging.info("Hello from the Python Demo Service")
-        time.sleep(15)
-    logging.info("End serv")
+        time.sleep(5)
+    logging.info("End loop")
 
 def cleanup():
     logging.info("Cleanup") 
@@ -174,6 +202,8 @@ def cleanup():
         _httpd.shutdown()
     if _httpd_thread is not None:
         _httpd_thread.join()
+    if _piface_thread is not None:
+        _piface_thread.join()
     print("End cleanup") 
 
 
