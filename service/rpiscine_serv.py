@@ -103,13 +103,12 @@ class MyHandler(BaseHTTPRequestHandler):
         super().end_headers()
 
     def do_GET(self):
-        logging.info("GET request,\nPath: %s\nHeaders:\n%s\n", str(self.path), str(self.headers))
         self._set_response()
         data = None
         if self.path == "/current":
             data = { "state": _data.getState(), "epoch": getEpoch() }
         elif self.path == "/events":
-            data = { "events": _data.getEvents() }
+            data = { "events": _data.getEvents(), "epoch": getEpoch() }
 
         if data:
             io = StringIO()
@@ -117,6 +116,7 @@ class MyHandler(BaseHTTPRequestHandler):
             s = io.getvalue()
             self.wfile.write(s.encode('utf-8'))
         else:
+            logging.info("GET request,\nPath: %s\nHeaders:\n%s\n", str(self.path), str(self.headers))
             self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
 
 
