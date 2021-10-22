@@ -1,7 +1,7 @@
 import "./RPApp.css"
 import React from "react"
-import { HashRouter as Router, Switch, Route } from "react-router-dom"
-import Container from "react-bootstrap/Container"
+import { HashRouter as Router, /*Switch,*/ Route } from "react-router-dom"
+//import Container from "react-bootstrap/Container"
 import RPContent from "./RPContent"
 import RPHeader from "./RPHeader"
 
