@@ -13,7 +13,7 @@ function _intToBits(val) {
 function _insertInput(val, pin) {
     const st = val === 0 ? "off" : "on"
     return (
-        <span>
+        <span key={`inp-s-${pin}`}>
         <span key={`inp-${pin}`} className={`RPInput ${st}`} > &nbsp; {pin} &nbsp; </span>
         &nbsp;
         </span>
@@ -31,7 +31,9 @@ const RPInputs = () => {
       }, [])
     
     async function _fetchData() {
-        axios.get(RPConstants.CurrentGetUrl)
+        const url = RPConstants.currentGetUrl()
+        RPConstants.log("@@ fetch " + url)
+        axios.get(url)
             .then( (response) => {
                 // RPConstants.log("@@ axios response: " + JSON.stringify(response))
                 _setStatus(undefined)
@@ -55,13 +57,13 @@ const RPInputs = () => {
     ) : (
         <div>
             <Container>
-                <h1> Etat entrees </h1>
+                <h1> Etat entr&eacute;es </h1>
             </Container>
             <Container>
                 {
                     _intToBits(_data.state).map( (val, pin) => _insertInput(val, pin) )
                 }
-                <Moment withTitle titleFormat="lll">{ _data.epoch * 1000 }</Moment>
+                <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
             </Container>
         </div>
   )

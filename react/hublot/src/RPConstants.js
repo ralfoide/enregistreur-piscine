@@ -12,14 +12,22 @@ function _log(param) {
     if (RPVerbose) console.log("@@ " + param)
 }
 
+function _getCurrentUrl() {
+    return window.location.protocol + "//" + window.location.hostname + ":8080/current"
+}
+
+function _getEventsUrl() {
+    return window.location.protocol + "//" + window.location.hostname + ":8080/events"
+}
+
 const RPConstants = {
     init: _init,
     log: _log,
     NumOut: 8,
-    CurrentGetUrl: "http://192.168.1.60:8080/current",
+    currentGetUrl: _getCurrentUrl,
     CurrentRefrehsMs: 5000,
-    EventsGetUrl:  "http://192.168.1.60:8080/events",
-    EventsRefreshMs: 10000,
+    eventsGetUrl: _getEventsUrl,
+    EventsRefreshMs: 20000,
 }
 
 export default RPConstants

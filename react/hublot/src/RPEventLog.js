@@ -10,11 +10,11 @@ function _intToBits(val) {
     return Array.from( { length: RPConstants.NumOut }, (v, k) => ( val & (1<<k)) )
 }
 
-function _insertInput(val, pin) {
+function _insertInput(val, pin, key) {
     const st = val === 0 ? "off" : "on"
     return (
-        <span>
-        <span key={`inp-${pin}`} className={`RPEvent ${st}`} > &nbsp; {pin} &nbsp; </span>
+        <span key={`evt-s-${pin}-${key}`}>
+        <span key={`evt-${pin}-${key}`} className={`RPEvent ${st}`} > &nbsp; {pin} &nbsp; </span>
         &nbsp;
         </span>
         )
@@ -22,9 +22,9 @@ function _insertInput(val, pin) {
 
 function _insertEvent(ev) {
     // ev = { state: val, epoch }
-    return ( <p>
-        { _intToBits(ev.state).map( (val, pin) => _insertInput(val, pin) ) }
-        <Moment withTitle titleFormat="lll">{ ev.epoch * 1000 }</Moment>
+    return ( <p key={`evt-p-${ev.epoch}`}>
+        { _intToBits(ev.state).map( (val, pin) => _insertInput(val, pin, ev.epoch) ) }
+        <Moment unix local locale="fr" format="LL, LTS">{ ev.epoch }</Moment>
         </p> )
 }
 
@@ -39,7 +39,9 @@ const RPEventLog = () => {
       }, [])
     
     async function _fetchData() {
-        axios.get(RPConstants.EventsGetUrl)
+        const url = RPConstants.eventsGetUrl()
+        RPConstants.log("@@ fetch " + url)
+        axios.get(url)
             .then( (response) => {
                 // RPConstants.log("@@ axios response: " + JSON.stringify(response))
                 _setStatus(undefined)
@@ -67,8 +69,7 @@ const RPEventLog = () => {
             </Container>
             <Container>
                 { _data.events.map( ev => _insertEvent(ev) ) }
-                <br/>
-                Mis a jour: <Moment withTitle titleFormat="lll">{ _data.epoch * 1000 }</Moment>
+                Mis a jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
             </Container>
         </div>
   )

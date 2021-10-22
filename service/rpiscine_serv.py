@@ -51,6 +51,9 @@ class MockPiFace:
     def turn_off(self):
         pass
 
+    def value(self):
+        return 0
+
 
 class PiscineData:
     def __init__(self):
