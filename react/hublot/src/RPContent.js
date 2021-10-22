@@ -27,7 +27,8 @@ const RPContent = () => {
     const [ _status, _setStatus ] = useState( "Chargement en cours" )
 
     useEffect( () => {
-        _fetchData()
+        const interval = setInterval( () => _fetchData(), 1000 )
+        return () => clearInterval(interval)
       }, [])
     
     async function _fetchData() {
