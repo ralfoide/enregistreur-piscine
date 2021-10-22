@@ -1,2 +1,10 @@
 .RPApp {
 }
+
+.RPInput.on {
+  background-color: green;
+}
+
+.RPInput.off {
+  background-color: red;
+}

@@ -1,41 +1,68 @@
-//import RPiscineHost from "./RPConstants"
+import "./RPApp.css"
+import RPConstants from "./RPConstants"
 import React from "react"
 import Container from "react-bootstrap/Container"
-import Jumbotron from "react-bootstrap/Jumbotron"
 import { useEffect, useState } from "react"
 import axios from "axios"
+import Moment from "react-moment"
+
+function _intToBits(val) {
+    const v = Array.from( { length: RPConstants.NumOut }, (v, k) => ( val & (1<<k)) )
+    RPConstants.log("bits: " + JSON.stringify(v))
+    return v
+}
+
+function _insertInput(val, pin) {
+    const st = val === 0 ? "off" : "on"
+    return (
+        <span>
+        <span key={`inp-${pin}`} className={`RPInput ${st}`} > &nbsp; {pin} &nbsp; </span>
+        &nbsp;
+        </span>
+        )
+}
 
 const RPContent = () => {
-    const [ _data, _setData ] = useState( [] )
+    const [ _data, _setData ] = useState( { state: 0, epoch: 0 } )
+    const [ _status, _setStatus ] = useState( "Chargement en cours" )
 
     useEffect( () => {
         _fetchData()
       }, [])
     
     async function _fetchData() {
-        _setData( { state: 0, epoch: 0 } )
-        // var url = RPiscineHost + "/current"
-        var url = "http://192.168.1.60:8080/current"
-        console.log("@@ axios URL: " + url)
-        axios.get(url)
+        axios.get(RPConstants.UrlCurrent)
             .then( (response) => {
-                console.log("@@ axios response: " + JSON.stringify(response))
+                RPConstants.log("@@ axios response: " + JSON.stringify(response))
+                _setStatus(undefined)
                 _setData(response.data)
             })
             .catch( (error) => {
-                console.log("@@ axios error: " + JSON.stringify(error))
+                _setStatus("Erreur de chargement")
+                RPConstants.log("@@ axios error: " + JSON.stringify(error))
             })
     }
 
-    return (
+    return (_status !== undefined) ? (
         <div>
-            <Jumbotron fluid>
-                <Container>
-                    <h1> R-Piscine </h1>
-                </Container>
-            </Jumbotron>
             <Container>
-                Entrees: { _data.state } temps { _data.epoch }
+                <h1> Etat entrees </h1>
+            </Container>
+            <Container>
+                { _status }
+            </Container>
+        </div>
+    ) : (
+        <div>
+            <Container>
+                <h1> Etat entrees </h1>
+            </Container>
+            <Container>
+                {
+                    _intToBits(_data.state).map( (val, pin) => _insertInput(val, pin) )
+                }
+                <br/>
+                Mis a jour: <Moment withTitle titleFormat="lll">{ _data.epoch * 1000 }</Moment>
             </Container>
         </div>
   )
