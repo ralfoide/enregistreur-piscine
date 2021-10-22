@@ -22,7 +22,7 @@ function _insertInput(val, pin) {
         )
 }
 
-const RPContent = () => {
+const RPInputs = () => {
     const [ _data, _setData ] = useState( { state: 0, epoch: 0 } )
     const [ _status, _setStatus ] = useState( "Chargement en cours" )
 
@@ -69,4 +69,4 @@ const RPContent = () => {
   )
 }
 
-export default RPContent
+export default RPInputs
