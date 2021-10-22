@@ -23,6 +23,7 @@ except ModuleNotFoundError:
 
 _HTTP_PORT = 8080
 _NUM_OUT = 8
+_DUP_OUT = True  # true to duplicate input on output pins
 _running = True
 _piface = None
 _listeners = None
@@ -55,7 +56,7 @@ class PiscineData:
     def __init__(self):
         logging.info("Piscine data created")
         self.lock = threading.Lock()
-        self.events = ()  # { "state": _data.getState(), "epoch": 42 }
+        self.events = []  # { "state": _data.getState(), "epoch": 42 }
         self.state = 0
 
     def getState(self):
@@ -65,19 +66,29 @@ class PiscineData:
     def getEvents(self):
         with self.lock:
             return self.events
-    
+
+    def _set_to_int(self, val, pin_num, is_on):
+        if is_on:
+            return val | (1 << pin_num)
+        else:
+            return val & (0xFF - (1 << pin_num))
+
+    def _get_from_int(self, val, pin_num):
+        return (val & (1 << pin_num)) != 0
+ 
     def updatePin(self, pin_num, is_on):
         """ pin_num: 0.._NUM_OUT, is_on: Boolean. """
         with self.lock:
             st_old = self.state
-            st_new = st_old
-            if is_on:
-                st_new = st_old | (1 << pin_num)
-            else:
-                st_new = st_old & (0xFF - (1 << pin_num))
+            st_new = self._set_to_int(st_old, pin_num, is_on)
             if st_new != st_old:
                 self.state = st_new
                 self.events.append( { "state": st_new, "epoch": getEpoch() } )
+                if _DUP_OUT:
+                    if self._get_from_int(self.state, pin_num):
+                        _piface.output_pins[pin_num].turn_on()
+                    else:
+                        _piface.output_pins[pin_num].turn_off()
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -92,7 +103,7 @@ class MyHandler(BaseHTTPRequestHandler):
         data = None
         if self.path == "/current":
             data = { "state": _data.getState(), "epoch": getEpoch() }
-        elif self.path == "/last_events":
+        elif self.path == "/events":
             data = { "events": _data.getEvents() }
 
         if data:
@@ -173,6 +184,7 @@ def piface_monitor_async():
         for p in range(_NUM_OUT):
             v = _piface.input_pins[p].value
             if v != last[p]:
+                logging.info("Piface change: pin %s -> state %s", p, v)
                 last[p] = v
                 _data.updatePin(p, v != 0)
         time.sleep(1) 
