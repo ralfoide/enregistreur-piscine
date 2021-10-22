@@ -16,8 +16,10 @@ const RPConstants = {
     init: _init,
     log: _log,
     NumOut: 8,
-    UrlCurrent: "http://192.168.1.60:8080/current",
-    UrlEvents:  "http://192.168.1.60:8080/events",
+    CurrentGetUrl: "http://192.168.1.60:8080/current",
+    CurrentRefrehsMs: 5000,
+    EventsGetUrl:  "http://192.168.1.60:8080/events",
+    EventsRefreshMs: 10000,
 }
 
 export default RPConstants

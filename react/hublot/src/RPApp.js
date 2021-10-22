@@ -3,6 +3,7 @@ import React from "react"
 import { HashRouter as Router, /*Switch,*/ Route } from "react-router-dom"
 //import Container from "react-bootstrap/Container"
 import RPInputs from "./RPInputs"
+import RPEventLog from "./RPEventLog"
 import RPHeader from "./RPHeader"
 import RPConstants from "./RPConstants"
 
@@ -14,7 +15,7 @@ const RPApp = () => {
             <RPHeader/>
             <Router>
                 <Route path="/" render={props => {
-                    return <RPInputs /> } } />
+                    return <div> <RPInputs/> <RPEventLog/> </div> } } />
             </Router>
         </div>
   )

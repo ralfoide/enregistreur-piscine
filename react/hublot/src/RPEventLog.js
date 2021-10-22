@@ -14,24 +14,32 @@ function _insertInput(val, pin) {
     const st = val === 0 ? "off" : "on"
     return (
         <span>
-        <span key={`inp-${pin}`} className={`RPInput ${st}`} > &nbsp; {pin} &nbsp; </span>
+        <span key={`inp-${pin}`} className={`RPEvent ${st}`} > &nbsp; {pin} &nbsp; </span>
         &nbsp;
         </span>
         )
 }
 
-const RPInputs = () => {
-    const [ _data, _setData ] = useState( { state: 0, epoch: 0 } )
+function _insertEvent(ev) {
+    // ev = { state: val, epoch }
+    return ( <p>
+        { _intToBits(ev.state).map( (val, pin) => _insertInput(val, pin) ) }
+        <Moment withTitle titleFormat="lll">{ ev.epoch * 1000 }</Moment>
+        </p> )
+}
+
+const RPEventLog = () => {
+    const [ _data, _setData ] = useState( { events: [], epoch: 0 } )
     const [ _status, _setStatus ] = useState( "Chargement en cours" )
 
     useEffect( () => {
         _fetchData()
-        const interval = setInterval( () => _fetchData(), RPConstants.CurrentRefrehsMs )
+        const interval = setInterval( () => _fetchData(), RPConstants.EventsRefreshMs )
         return () => clearInterval(interval)
       }, [])
     
     async function _fetchData() {
-        axios.get(RPConstants.CurrentGetUrl)
+        axios.get(RPConstants.EventsGetUrl)
             .then( (response) => {
                 // RPConstants.log("@@ axios response: " + JSON.stringify(response))
                 _setStatus(undefined)
@@ -46,7 +54,7 @@ const RPInputs = () => {
     return (_status !== undefined) ? (
         <div>
             <Container>
-                <h1> Etat entrees </h1>
+                <h1> Historique </h1>
             </Container>
             <Container>
                 { _status }
@@ -55,16 +63,15 @@ const RPInputs = () => {
     ) : (
         <div>
             <Container>
-                <h1> Etat entrees </h1>
+                <h1> Historique </h1>
             </Container>
             <Container>
-                {
-                    _intToBits(_data.state).map( (val, pin) => _insertInput(val, pin) )
-                }
-                <Moment withTitle titleFormat="lll">{ _data.epoch * 1000 }</Moment>
+                { _data.events.map( ev => _insertEvent(ev) ) }
+                <br/>
+                Mis a jour: <Moment withTitle titleFormat="lll">{ _data.epoch * 1000 }</Moment>
             </Container>
         </div>
   )
 }
 
-export default RPInputs
+export default RPEventLog
