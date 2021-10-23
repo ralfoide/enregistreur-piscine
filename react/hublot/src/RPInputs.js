@@ -50,18 +50,16 @@ const RPInputs = () => {
                 <Card.Body>
                     <Card.Title>Etat courant</Card.Title>
                     <Card.Text>
-                        <table>
-                        <tr>
-                        { RPCommon.insertHeader() }
-                        </tr>
-                        <tr>
+                        <table><thead><tr>
+                        { RPCommon.insertHeader("inp") }
+                        </tr></thead>
+                        <tbody><tr>
                         { RPCommon.intToBits(_data.state).map( (val, pin) => 
                             RPCommon.insertInput("inp", "RPInput", val, pin) ) }
                         <td>
                         <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
                         </td>
-                        </tr>
-                        </table>
+                        </tr></tbody></table>
                     </Card.Text>
                 </Card.Body>
             </Card>

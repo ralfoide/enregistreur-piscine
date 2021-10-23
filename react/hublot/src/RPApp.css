@@ -30,3 +30,8 @@ span.RPInput, span.RPEvent {
 /* p.RPEvent-Line {
   margin-block-end: 0.1em;
 } */
+
+.RPChart {
+  width: 700px;
+  height: 100px;
+}

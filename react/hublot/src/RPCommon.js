@@ -10,18 +10,20 @@ function _insertInput(keyPrefix, cssClass, val, pin, key) {
     const letter = RPConstants.InputNames[pin].letter
     const title = RPConstants.InputNames[pin].long
     return (
-        <td><span
-            key={`${keyPrefix}-${pin}-${key}`}
-            className={`${cssClass} ${st}`}
-            title={`${title}`}
-        >{letter}</span></td>
+        <td key={`${keyPrefix}-d-${pin}-${key}`}>
+            <span key={`${keyPrefix}-s-${pin}-${key}`}
+                className={`${cssClass} ${st}`}
+                title={`${title}`}>
+            {letter}
+            </span>
+        </td>
         )
 }
 
-function _insertHeader() {
+function _insertHeader(keyPrefix) {
     return Array.from( { length: RPConstants.NumOut }, (v, k) => {
             const title = RPConstants.InputNames[k].short
-            return ( <td className="RPHeader">{ title }</td> )} )
+            return ( <td className="RPHeader" key={`${keyPrefix}-hd-${k}`}>{ title }</td> )} )
 }
 
 const RPCommon = {

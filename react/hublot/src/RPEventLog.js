@@ -10,11 +10,11 @@ import Moment from "react-moment"
 
 function _insertEvent(ev) {
     // ev = { state: val, epoch }
-    return ( <tr key={`evt-p-${ev.epoch}`} className="RPEvent-Line">
+    return ( <tr key={`evt-r-${ev.epoch}`} className="RPEvent-Line">
         { RPCommon.intToBits(ev.state).map( (val, pin) => RPCommon.insertInput("evt", "RPEvent", val, pin, ev.epoch) ) }
-        <td>
+        <td key={`evt-d-${ev.epoch}`}>
         <Moment unix local locale="fr" format="LL, LTS">{ ev.epoch }</Moment>
-        </td><td>
+        </td><td key={`evt-f-${ev.epoch}`}>
         &nbsp;
         ( <Moment unix local locale="fr" withTitle titleFormat="LL, LTS" fromNow>{ ev.epoch }</Moment> )
         </td>
@@ -63,17 +63,16 @@ const RPEventLog = () => {
                 <Card.Body>
                     <Card.Title>Evénements</Card.Title>
                     <Card.Text>
-                        <table>
-                        <tr>
-                        { RPCommon.insertHeader() }
-                        </tr>
+                        <table><thead><tr>
+                        { RPCommon.insertHeader("evt") }
+                        </tr></thead>
+                        <tbody>
                         { _data.events.map( ev => _insertEvent(ev) ) }
                         <tr>
-                        <td colSpan="9">
+                        <td colSpan="9" key="evt-end">
                         Mis a jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
                         </td>
-                        </tr>
-                        </table>
+                        </tr></tbody></table>
                     </Card.Text>
                 </Card.Body>
             </Card>
