@@ -6,6 +6,7 @@ import RPInputs from "./RPInputs"
 import RPEventLog from "./RPEventLog"
 import RPHeader from "./RPHeader"
 import RPConstants from "./RPConstants"
+import RPCharts from "./RPCharts"
 
 RPConstants.init()
 
@@ -15,7 +16,15 @@ const RPApp = () => {
             <RPHeader/>
             <Router>
                 <Route path="/" render={props => {
-                    return <div> <br/> <RPInputs/> <br/> <RPEventLog/> </div> } } />
+                    return (
+                    <div>
+                        <br/>
+                        <RPInputs/>
+                        <br/>
+                        <RPCharts/>
+                        <br/>
+                        <RPEventLog/>
+                    </div> ) } } />
             </Router>
         </div>
   )

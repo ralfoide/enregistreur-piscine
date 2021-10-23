@@ -5,10 +5,10 @@ const _InputNames = [  // must match NumOut below.
     { letter: "C", short: "Chauf", long: "M/A Chauffage" },
     { letter: "R", short: "Sel Rg", long: "Traitement Sel Rouge" },
     { letter: "V", short: "Sel Vt", long: "Traitement Sel Vert" },
-    { letter: "5", short: "", long: "" },
-    { letter: "6", short: "", long: "" },
-    { letter: "7", short: "", long: "" },
-    { letter: "8", short: "", long: "" },
+    { letter: "5", short: "In 5", long: "Entree 5" },
+    { letter: "6", short: "In 6", long: "Entree 6" },
+    { letter: "7", short: "In 7", long: "Entree 7" },
+    { letter: "8", short: "In 8", long: "Entree 8" },
 ]
 
 function _init() {

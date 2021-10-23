@@ -64,6 +64,9 @@ const RPEventLog = () => {
                     <Card.Title>Evénements</Card.Title>
                     <Card.Text>
                         <table>
+                        <tr>
+                        { RPCommon.insertHeader() }
+                        </tr>
                         { _data.events.map( ev => _insertEvent(ev) ) }
                         <tr>
                         <td colSpan="9">
