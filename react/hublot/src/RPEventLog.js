@@ -1,5 +1,6 @@
 import "./RPApp.css"
 import RPConstants from "./RPConstants"
+import RPCommon from "./RPCommon"
 import React from "react"
 import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
@@ -7,28 +8,17 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import Moment from "react-moment"
 
-function _intToBits(val) {
-    return Array.from( { length: RPConstants.NumOut }, (v, k) => ( val & (1<<k)) )
-}
-
-function _insertInput(val, pin, key) {
-    const st = val === 0 ? "off" : "on"
-    return (
-        <span key={`evt-s-${pin}-${key}`}>
-        <span key={`evt-${pin}-${key}`} className={`RPEvent ${st}`} > &nbsp; {pin} &nbsp; </span>
-        &nbsp;
-        </span>
-        )
-}
-
 function _insertEvent(ev) {
     // ev = { state: val, epoch }
-    return ( <p key={`evt-p-${ev.epoch}`} className="RPEvent-Line">
-        { _intToBits(ev.state).map( (val, pin) => _insertInput(val, pin, ev.epoch) ) }
+    return ( <tr key={`evt-p-${ev.epoch}`} className="RPEvent-Line">
+        { RPCommon.intToBits(ev.state).map( (val, pin) => RPCommon.insertInput("evt", "RPEvent", val, pin, ev.epoch) ) }
+        <td>
         <Moment unix local locale="fr" format="LL, LTS">{ ev.epoch }</Moment>
+        </td><td>
         &nbsp;
         ( <Moment unix local locale="fr" withTitle titleFormat="LL, LTS" fromNow>{ ev.epoch }</Moment> )
-        </p> )
+        </td>
+        </tr> )
 }
 
 const RPEventLog = () => {
@@ -73,8 +63,14 @@ const RPEventLog = () => {
                 <Card.Body>
                     <Card.Title>Evénements</Card.Title>
                     <Card.Text>
+                        <table>
                         { _data.events.map( ev => _insertEvent(ev) ) }
+                        <tr>
+                        <td colSpan="9">
                         Mis a jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
+                        </td>
+                        </tr>
+                        </table>
                     </Card.Text>
                 </Card.Body>
             </Card>

@@ -1,8 +1,22 @@
+body {
+  --bs-body-bg: lightgray;
+}
+
 .RPApp {
 }
 
+.RPHeader {
+  font-size: small;
+}
+
+span.RPInput, span.RPEvent {
+  margin-right: 0.5em;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
 .RPInput.on, .RPEvent.on {
-  background-color: green;
+  background-color: lightgreen;
 }
 
 .RPInput.off {
@@ -13,6 +27,6 @@
   background-color: lightgray;
 }
 
-p.RPEvent-Line {
+/* p.RPEvent-Line {
   margin-block-end: 0.1em;
-}
+} */

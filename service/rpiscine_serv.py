@@ -31,12 +31,15 @@ _data = None
 _httpd = None
 _httpd_thread = None
 _piface_thread = None
+_mock_epoch = 0
 
 def getEpoch():
     if _HAS_PIFACE:
         return int(time.time())
     else:
-        return 42    # mock for mock piface
+        global _mock_epoch
+        _mock_epoch = _mock_epoch + 1
+        return _mock_epoch    # mock for mock piface
 
 
 class MockPiFace:
@@ -52,7 +55,7 @@ class MockPiFace:
         pass
 
     def value(self):
-        return 0
+        return _mock_epoch % 2
 
 
 class PiscineData:

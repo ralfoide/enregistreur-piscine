@@ -1,25 +1,12 @@
 import "./RPApp.css"
 import RPConstants from "./RPConstants"
+import RPCommon from "./RPCommon"
 import React from "react"
 import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
 import { useEffect, useState } from "react"
 import axios from "axios"
 import Moment from "react-moment"
-
-function _intToBits(val) {
-    return Array.from( { length: RPConstants.NumOut }, (v, k) => ( val & (1<<k)) )
-}
-
-function _insertInput(val, pin) {
-    const st = val === 0 ? "off" : "on"
-    return (
-        <span key={`inp-s-${pin}`}>
-        <span key={`inp-${pin}`} className={`RPInput ${st}`} > &nbsp; {pin} &nbsp; </span>
-        &nbsp;
-        </span>
-        )
-}
 
 const RPInputs = () => {
     const [ _data, _setData ] = useState( { state: 0, epoch: 0 } )
@@ -63,8 +50,18 @@ const RPInputs = () => {
                 <Card.Body>
                     <Card.Title>Etat courant</Card.Title>
                     <Card.Text>
-                        { _intToBits(_data.state).map( (val, pin) => _insertInput(val, pin) ) }
+                        <table>
+                        <tr>
+                        { RPCommon.insertHeader() }
+                        </tr>
+                        <tr>
+                        { RPCommon.intToBits(_data.state).map( (val, pin) => 
+                            RPCommon.insertInput("inp", "RPInput", val, pin) ) }
+                        <td>
                         <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
+                        </td>
+                        </tr>
+                        </table>
                     </Card.Text>
                 </Card.Body>
             </Card>
