@@ -1,6 +1,7 @@
 import "./RPApp.css"
 import RPConstants from "./RPConstants"
 import React from "react"
+import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
 import { useEffect, useState } from "react"
 import axios from "axios"
@@ -46,26 +47,28 @@ const RPInputs = () => {
     }
 
     return (_status !== undefined) ? (
-        <div>
-            <Container>
-                <h1> Etat entrees </h1>
-            </Container>
-            <Container>
-                { _status }
-            </Container>
-        </div>
+        <Container>
+            <Card>
+                <Card.Body>
+                    <Card.Title>Etat courant</Card.Title>
+                    <Card.Text>
+                        { _status }
+                    </Card.Text>
+                </Card.Body>
+            </Card>
+        </Container>
     ) : (
-        <div>
-            <Container>
-                <h1> Etat entr&eacute;es </h1>
-            </Container>
-            <Container>
-                {
-                    _intToBits(_data.state).map( (val, pin) => _insertInput(val, pin) )
-                }
-                <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
-            </Container>
-        </div>
+        <Container>
+            <Card>
+                <Card.Body>
+                    <Card.Title>Etat courant</Card.Title>
+                    <Card.Text>
+                        { _intToBits(_data.state).map( (val, pin) => _insertInput(val, pin) ) }
+                        <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
+                    </Card.Text>
+                </Card.Body>
+            </Card>
+        </Container>
   )
 }
 

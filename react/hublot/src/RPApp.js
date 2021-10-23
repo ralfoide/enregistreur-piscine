@@ -15,7 +15,7 @@ const RPApp = () => {
             <RPHeader/>
             <Router>
                 <Route path="/" render={props => {
-                    return <div> <RPInputs/> <RPEventLog/> </div> } } />
+                    return <div> <br/> <RPInputs/> <br/> <RPEventLog/> </div> } } />
             </Router>
         </div>
   )

@@ -12,3 +12,7 @@
 .RPEvent.off {
   background-color: lightgray;
 }
+
+p.RPEvent-Line {
+  margin-block-end: 0.1em;
+}

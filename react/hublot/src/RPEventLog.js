@@ -1,6 +1,7 @@
 import "./RPApp.css"
 import RPConstants from "./RPConstants"
 import React from "react"
+import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
 import { useEffect, useState } from "react"
 import axios from "axios"
@@ -22,9 +23,11 @@ function _insertInput(val, pin, key) {
 
 function _insertEvent(ev) {
     // ev = { state: val, epoch }
-    return ( <p key={`evt-p-${ev.epoch}`}>
+    return ( <p key={`evt-p-${ev.epoch}`} className="RPEvent-Line">
         { _intToBits(ev.state).map( (val, pin) => _insertInput(val, pin, ev.epoch) ) }
         <Moment unix local locale="fr" format="LL, LTS">{ ev.epoch }</Moment>
+        &nbsp;
+        ( <Moment unix local locale="fr" withTitle titleFormat="LL, LTS" fromNow>{ ev.epoch }</Moment> )
         </p> )
 }
 
@@ -54,24 +57,28 @@ const RPEventLog = () => {
     }
 
     return (_status !== undefined) ? (
-        <div>
-            <Container>
-                <h1> Historique </h1>
-            </Container>
-            <Container>
-                { _status }
-            </Container>
-        </div>
+        <Container>
+            <Card>
+                <Card.Body>
+                    <Card.Title>Evénements</Card.Title>
+                    <Card.Text>
+                        { _status }
+                    </Card.Text>
+                </Card.Body>
+            </Card>
+        </Container>
     ) : (
-        <div>
-            <Container>
-                <h1> Historique </h1>
-            </Container>
-            <Container>
-                { _data.events.map( ev => _insertEvent(ev) ) }
-                Mis a jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
-            </Container>
-        </div>
+        <Container>
+            <Card>
+                <Card.Body>
+                    <Card.Title>Evénements</Card.Title>
+                    <Card.Text>
+                        { _data.events.map( ev => _insertEvent(ev) ) }
+                        Mis a jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
+                    </Card.Text>
+                </Card.Body>
+            </Card>
+        </Container>
   )
 }
 
