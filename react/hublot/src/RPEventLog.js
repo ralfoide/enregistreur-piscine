@@ -38,7 +38,9 @@ const RPEventLog = () => {
             .then( (response) => {
                 // RPConstants.log("@@ axios response: " + JSON.stringify(response))
                 _setStatus(undefined)
-                _setData(response.data)
+                let data = response.data
+                data.events.sort((a, b) => a.epoch - b.epoch)
+                _setData(data)
             })
             .catch( (error) => {
                 _setStatus("Erreur de chargement")

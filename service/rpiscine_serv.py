@@ -9,6 +9,7 @@ import time
 import threading
 import signal
 
+_MOCK = False
 _HAS_SYSTEMD = True
 try:
     import systemd.daemon
@@ -20,6 +21,7 @@ try:
     import pifacedigitalio
 except ModuleNotFoundError:
     _HAS_PIFACE = False
+    _MOCK = True
 
 _HTTP_PORT = 8080
 _NUM_OUT = 8
@@ -31,15 +33,26 @@ _data = None
 _httpd = None
 _httpd_thread = None
 _piface_thread = None
-_mock_epoch = 0
+_mock_epoch = int(time.time())
 
 def getEpoch():
-    if _HAS_PIFACE:
-        return int(time.time())
-    else:
+    if _MOCK:
         global _mock_epoch
         _mock_epoch = _mock_epoch + 1
         return _mock_epoch    # mock for mock piface
+    else:
+        return int(time.time())
+
+def injectMockEvents():
+    if _MOCK:
+        global _mock_epoch
+        _tmp_epoch = _mock_epoch
+        for i in range(0, _NUM_OUT):
+            _mock_epoch = _tmp_epoch - 1800 - 3600*i
+            _data.updatePin(i, 1)
+            _mock_epoch = _tmp_epoch - 10 - 3600*i
+            _data.updatePin(i, 0)
+        _mock_epoch = _tmp_epoch
 
 
 class MockPiFace:
@@ -171,6 +184,8 @@ def setup():
     time.sleep(0.3)
     for p in range(_NUM_OUT):
         _piface.output_pins[p].turn_off()
+
+    injectMockEvents()
 
     server_address = ( "", _HTTP_PORT )
     logging.info("Setup REST server at %s", server_address)
