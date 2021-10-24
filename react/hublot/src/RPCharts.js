@@ -8,24 +8,6 @@ import axios from "axios"
 import RPChart from "./RPChart"
 
 function _insertChart(chartData, key) {
-    // const data = {
-    //     bgColor: 'rgba(255, 99, 132, 1)',
-    //     data: [
-    //         { x: 0, y: 0 },
-
-    //         { x: 1, y: 0 },
-    //         { x: 1, y: 1 },
-    //         { x: 3, y: 1 },
-    //         { x: 3, y: 0 },
-    
-    //         { x: 10, y: 0 },
-    //         { x: 10.5, y: 1 },
-    //         { x: 13, y: 1 },
-    //         { x: 13.5, y: 0 },
-    
-    //         { x: 24, y: 0 },
-    //     ]
-    // }
     return <RPChart className="RPChart" key={`chart-${key}`} data={chartData} width={700} height={200} />
 }
 
@@ -57,10 +39,8 @@ function _transformData(input) {
     let output = []
     RPConstants.InputNames.forEach( (v, k) => {
         const ci = v.chart
-        // if (ci > 0) return // DEBUG
         if (output[ci] === undefined) { output.push( { hourNow: hourNow, curves: [] } ) }
         const cp = v.chart_pos
-        // if (cp > 0) return // DEBUG
         if (output[ci].curves[cp] === undefined) {
             output[ci].curves.push( {
                 title: v.long,
@@ -84,7 +64,6 @@ function _transformData(input) {
         })
     })
 
-    // DEBUG RPConstants.log("@@ transformed: " + JSON.stringify(output))
     return output
 }
 
@@ -95,10 +74,10 @@ const RPCharts = () => {
 
     useEffect( () => {
         _fetchData()
-        // const interval = setInterval( () => _fetchData(), RPConstants.CurrentRefrehsMs )
-        // return () => clearInterval(interval)
+        const interval = setInterval( () => _fetchData(), RPConstants.CurrentRefrehsMs )
+        return () => clearInterval(interval)
       }, [])
-    
+
     async function _fetchData() {
         const url = RPConstants.eventsGetUrl()
         RPConstants.log("@@ fetch " + url)

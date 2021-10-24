@@ -25,7 +25,7 @@ const RPChart = props => {
 //       }
 //       return false
 //   }
-  
+
     const draw = ctx => {
         // WARNING: canvas pixel coordinates are "on grid". To draw pure 1-pixel stroke line, it needs
         // to be drawn with a 0.5 offset to avoid aliasing it over 2 lines.
@@ -68,7 +68,6 @@ const RPChart = props => {
             }
         }
 
-        // DEBUG RPConstants.log("@@ draw n = " + n)
         if (n > 0) {
             const nh = (ch - tickH - marginTop) / n
 
@@ -96,14 +95,13 @@ const RPChart = props => {
                 points.forEach( (p, pk) => {
                     const x = cw - marginW - p.x * hw
                     const y = p.y <= 0 ? y0 : y1
-                    // DEBUG RPConstants.log("k " + k + ", y " + y + ", pk " + pk + ", px " + p.x + " > x " + x)
                     ctx.lineTo(x, y)
                 })
                 ctx.stroke()
             })
         }
     }
-  
+
     useEffect(() => {
         const canvas = canvasRef.current
         const context = canvas.getContext('2d')

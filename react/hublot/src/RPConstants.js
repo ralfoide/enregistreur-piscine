@@ -38,7 +38,7 @@ const RPConstants = {
     currentGetUrl: _getCurrentUrl,
     CurrentRefrehsMs: 5000,
     eventsGetUrl: _getEventsUrl,
-    EventsRefreshMs: 20000,
+    EventsRefreshMs: 30000,
     InputNames: _InputNames,
 }
 
