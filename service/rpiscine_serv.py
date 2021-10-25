@@ -267,8 +267,9 @@ class MyHandler(BaseHTTPRequestHandler):
         events = _data.getEvents()
         name = "rpiscine"
         if len(events) > 0:
-            first_ts = events[0]["epoch"]
-            t = time.localtime(first_ts)
+            # use last event to find the date for the filename
+            ts = events[-1]["epoch"]
+            t = time.localtime(ts)
             name += "_%s-%s-%s" % (t.tm_year, t.tm_mon, t.tm_mday)
         self._set_response("text/plain")
         self.send_header("Content-Disposition", "attachment; filename=\"%s.csv\"" % name)

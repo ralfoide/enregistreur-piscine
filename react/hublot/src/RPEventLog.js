@@ -41,6 +41,13 @@ const RPEventLog = () => {
                 _setStatus(undefined)
                 let data = response.data
                 data.events.sort((a, b) => a.epoch - b.epoch)
+                data.last_date = ""
+                if (data.events.length > 0) {
+                    const last_epoch = data.events[data.events.length - 1].epoch
+                    const d = new Date(last_epoch)
+                    const s = "" + d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay()
+                    data.last_date = s
+                }
                 _setData(data)
             })
             .catch( (error) => {
@@ -64,7 +71,7 @@ const RPEventLog = () => {
         <Container>
             <Card>
                 <Card.Body>
-                    <Card.Title>Evénements</Card.Title>
+                    <Card.Title>Evénements { _data.last_date == "" ? "" : " pour " + _data.last_date}</Card.Title>
                     <Button href={ RPConstants.downloadUrl() }>Télécharger</Button>
                     <Card.Text>
                         <table><thead><tr>
