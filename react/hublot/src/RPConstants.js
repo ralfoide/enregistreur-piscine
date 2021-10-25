@@ -31,13 +31,18 @@ function _getEventsUrl() {
     return window.location.protocol + "//" + window.location.hostname + ":8080/events"
 }
 
+function _getDownloadUrl() {
+    return window.location.protocol + "//" + window.location.hostname + ":8080/download"
+}
+
 const RPConstants = {
     init: _init,
     log: _log,
     NumOut: 8,
     currentGetUrl: _getCurrentUrl,
-    CurrentRefrehsMs: 5000,
     eventsGetUrl: _getEventsUrl,
+    downloadUrl: _getDownloadUrl,
+    CurrentRefrehsMs: 5000,
     EventsRefreshMs: 30000,
     InputNames: _InputNames,
 }

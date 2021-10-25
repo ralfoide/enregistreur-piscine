@@ -16,7 +16,7 @@
 #
 # Existing file behavior:
 # - if file does not exist, auto-create/
-# - if file exists and doesn't have the proper signature, add/increment the -N after the date.
+# - if file exists and doesn"t have the proper signature, add/increment the -N after the date.
 # (that is: do not erase files which are not hours).
 # - if file exists and has the proper signature, read it, append at the end.
 
@@ -112,8 +112,14 @@ class PiscineData:
             return self.state
 
     def getEvents(self):
+        """ Returns up to 24-hour of events. """
         with self.lock:
-            return self.events
+            if len(self.events) == 0:
+                return []
+            ts_max = self.events[-1]["epoch"]
+            ts_min = ts_max - 24*3600
+            events = [ ev for ev in self.events if ev["epoch"] >= ts_min and ev["epoch"] <= ts_max ]
+            return events
 
     def _set_to_int(self, val, pin_num, is_on):
         if is_on:
@@ -149,12 +155,12 @@ class PiscineData:
         while True:
             fn = "rpiscine_%s-%s-%s_%02d.txt" % (t.tm_year, t.tm_mon, t.tm_mday, n)
             fp = os.path.join(_args.data_dir, fn)
-            # Don't load the file if already loaded.
+            # Don"t load the file if already loaded.
             if self._filepath == fp:
                 return
-            # Create the file if it doesn't exit.
+            # Create the file if it doesn"t exit.
             if not os.path.exists(fp) and self._create_file(fp):
-                # Nothing to read since it's a new file.
+                # Nothing to read since it"s a new file.
                 self._filepath = fp
                 return
             # If the file exist and is valid, read it.
@@ -222,22 +228,26 @@ class PiscineData:
         return False
 
     def _crc(self, epoch, state) -> int:
-        return binascii.crc32(("%x%x" % (epoch, state)).encode('utf-8'))
+        return binascii.crc32(("%x%x" % (epoch, state)).encode("utf-8"))
 
 
 class MyHandler(BaseHTTPRequestHandler):
-    def _set_response(self):
+    def _set_response(self, mimeType="text/html"):
         self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
+        self.send_header("Content-type", mimeType)
 
     # Disable CORS errors
-    def end_headers (self):
-        self.send_header('Access-Control-Allow-Origin', '*')
+    def _end_headers(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
         super().end_headers()
 
     def do_GET(self):
+        if self.path == "/download":
+            self.do_download()
+            return
+
         self._set_response()
+        self._end_headers()
         data = None
         if self.path == "/current":
             data = { "state": _data.getState(), "epoch": getEpoch() }
@@ -248,10 +258,34 @@ class MyHandler(BaseHTTPRequestHandler):
             io = StringIO()
             json.dump(data, io)
             s = io.getvalue()
-            self.wfile.write(s.encode('utf-8'))
+            self.wfile.write(s.encode("utf-8"))
         else:
             logging.debug("@@ Ignored GET request,\nPath: %s\nHeaders:\n%s\n", str(self.path), str(self.headers))
-            self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
+            self.wfile.write("GET request for {}".format(self.path).encode("utf-8"))
+
+    def do_download(self):
+        events = _data.getEvents()
+        name = "rpiscine"
+        if len(events) > 0:
+            first_ts = events[0]["epoch"]
+            t = time.localtime(first_ts)
+            name += "_%s-%s-%s" % (t.tm_year, t.tm_mon, t.tm_mday)
+        self._set_response("text/plain")
+        self.send_header("Content-Disposition", "attachment; filename=\"%s.csv\"" % name)
+        self._end_headers()
+        for ev in events:
+            s = ""
+            st = ev["state"]
+            for p in range(_NUM_OUT):
+                mask = 1<<p
+                if st & mask == 0:
+                    s += "A,"
+                else:
+                    s += "M,"
+            t = time.localtime(ev["epoch"])
+            s += time.strftime("\"%Y-%m-%d %H:%M:%S\"\n", t)
+            self.wfile.write(s.encode("utf-8"))
+        logging.debug("@@ Download %d events", len(events))
 
 
 def signal_handler(signum, frame):

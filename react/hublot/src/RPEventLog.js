@@ -4,6 +4,7 @@ import RPCommon from "./RPCommon"
 import React from "react"
 import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
+import Button from "react-bootstrap/Button"
 import { useEffect, useState } from "react"
 import axios from "axios"
 import Moment from "react-moment"
@@ -64,6 +65,7 @@ const RPEventLog = () => {
             <Card>
                 <Card.Body>
                     <Card.Title>Evénements</Card.Title>
+                    <Button href={ RPConstants.downloadUrl() }>Télécharger</Button>
                     <Card.Text>
                         <table><thead><tr>
                         { RPCommon.insertHeader("evt") }
