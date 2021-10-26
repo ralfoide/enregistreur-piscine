@@ -34,6 +34,9 @@ function _transformData(input) {
 
     const hourNow = (d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()) / 3600
 
+    // Copy & sort the input event array to have the most recent event first
+    const rev_events = [...input.events].sort( (a, b) => b.epoch - a.epoch )
+
     let output = []
     RPConstants.InputNames.forEach( (v, k) => {
         const ci = v.chart
@@ -48,11 +51,11 @@ function _transformData(input) {
         }
 
         const mask = 1<<k
-        input.events.sort( (a, b) => b.epoch - a.epoch )
 
         let last = -1
-        input.events.forEach( ev => {
+        rev_events.forEach( ev => {
             const y = (ev.state & mask) === 0 ? 0 : 1
+            if (last === -1) { last = y }
             if (y !== last) {
                 const x = hourDelta(ev.epoch)
                 output[ci].curves[cp].points.push( { x: x, y: last } )

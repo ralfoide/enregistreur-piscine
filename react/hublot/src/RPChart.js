@@ -90,15 +90,17 @@ const RPChart = props => {
                 ctx.fillStyle = color
                 ctx.fillText(title, 2, y0 - 6)
 
-                ctx.lineWidth = 2
-                ctx.beginPath()
-                ctx.moveTo(cw - marginW, y0)
-                points.forEach( (p, pk) => {
-                    const x = cw - marginW - p.x * hw
-                    const y = p.y <= 0 ? y0 : y1
-                    ctx.lineTo(x, y)
-                })
-                ctx.stroke()
+                if (points.length > 0) {
+                    ctx.lineWidth = 2
+                    ctx.beginPath()
+                    ctx.moveTo(cw - marginW, points[0].y <= 0 ? y0 : y1)
+                    points.forEach( (p, pk) => {
+                        const x = cw - marginW - p.x * hw
+                        const y = p.y <= 0 ? y0 : y1
+                        ctx.lineTo(x, y)
+                    })
+                    ctx.stroke()
+                }
             })
         }
     }
