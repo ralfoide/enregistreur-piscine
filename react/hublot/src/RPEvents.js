@@ -13,8 +13,10 @@ import Moment from "react-moment"
 
 function _prepareData(data) {
     data.events.sort((a, b) => a.epoch - b.epoch)
+    data.first_epoch = ""
     data.last_epoch = ""
     if (data.events.length > 0) {
+        data.first_epoch = data.events[0].epoch 
         data.last_epoch = data.events[data.events.length - 1].epoch
     }
     return data
@@ -66,9 +68,12 @@ const RPEvents = () => {
                     <Card.Text>
                         <Button href={ RPConstants.downloadUrl() }>Télécharger</Button>
                         <br/>
-                        Derniere donnée: <Moment local unix locale="fr" format="LL, LTS">{ _data.last_epoch }</Moment>
+                        Données:&nbsp;
+                        <Moment local unix locale="fr" format="LL, LTS">{ _data.first_epoch }</Moment>
+                        &nbsp;... jusqu'&agrave; ...&nbsp;
+                        <Moment local unix locale="fr" format="LL, LTS">{ _data.last_epoch }</Moment>
                         <br/>
-                        Affichage mis a jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
+                        Affichage mis &agrave; jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
                     </Card.Text>
                 </Card.Body>
             </Card>

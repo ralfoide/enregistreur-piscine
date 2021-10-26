@@ -39,6 +39,7 @@ const RPChart = props => {
 
         ctx.lineWidth = 1
         ctx.clearRect(0, 0, cw, ch)
+        ctx.fillStyle = 'black'
         ctx.strokeStyle = 'darkgray'
         ctx.strokeRect(ph, ph, cw-ph, ch-ph)
 

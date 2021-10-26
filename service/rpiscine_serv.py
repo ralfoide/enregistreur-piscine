@@ -129,7 +129,7 @@ class PiscineData:
             if len(self.events) == 0:
                 return []
             ts_max = self.events[-1]["epoch"]
-            ts_min = ts_max - _DOWNLOAD_NUM_MONTHS * 24 * 3600
+            ts_min = ts_max - _DOWNLOAD_NUM_MONTHS * 31 * 24 * 3600
             events = [ ev for ev in self.events if ev["epoch"] >= ts_min and ev["epoch"] <= ts_max ]
             return events
 

@@ -3,8 +3,6 @@ import RPConstants from "./RPConstants"
 import React from "react"
 import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
-import { useEffect, useState } from "react"
-import axios from "axios"
 import RPChart from "./RPChart"
 
 function _insertChart(chartData, key) {
@@ -69,48 +67,11 @@ function _transformData(input) {
 
 
 const RPCharts = ( { data } ) => {
-
-    // const [ _data, _setData ] = useState( [] )
-    // const [ _status, _setStatus ] = useState( "Chargement en cours" )
-
-    // useEffect( () => {
-    //     _fetchData()
-    //     const interval = setInterval( () => _fetchData(), RPConstants.CurrentRefrehsMs )
-    //     return () => clearInterval(interval)
-    //   }, [])
-
-    // async function _fetchData() {
-    //     const url = RPConstants.eventsGetUrl()
-    //     RPConstants.log("@@ fetch " + url)
-    //     axios.get(url)
-    //         .then( (response) => {
-    //             // RPConstants.log("@@ axios response: " + JSON.stringify(response))
-    //             _setStatus(undefined)
-    //             _setData(_transformData(response.data))
-    //         })
-    //         .catch( (error) => {
-    //             _setStatus("Erreur de chargement")
-    //             RPConstants.log("@@ axios error: " + JSON.stringify(error))
-    //         })
-    // }
-
-    // return (_status !== undefined) ? (
-    //     <Container>
-    //         <Card>
-    //             <Card.Body>
-    //                 <Card.Title>Courbes</Card.Title>
-    //                 <Card.Text>
-    //                     { _status }
-    //                 </Card.Text>
-    //             </Card.Body>
-    //         </Card>
-    //     </Container>
-    // ) : (
     return (
         <Container>
             <Card>
                 <Card.Body>
-                    <Card.Title>Courbes</Card.Title>
+                    <Card.Title>Courbes derni&egrave;res 24h</Card.Title>
                     <Card.Text>
                         { _insertCharts(_transformData(data)) }
                     </Card.Text>
