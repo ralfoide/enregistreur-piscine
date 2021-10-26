@@ -339,9 +339,9 @@ class MyHandler(BaseHTTPRequestHandler):
         last_m = [ 0 ] * _NUM_OUT
         delta = [ 0 ] * _NUM_OUT
 
-        header = "Date\tHeure\t"
-        header += "\t".join([ "\"Canal #%d\"" % (p+1) for p in range(_NUM_OUT) ]) + "\t"
-        header += "\t".join([ "\"Temps #%d\"" % (p+1) for p in range(_NUM_OUT) ]) + "\t"
+        header = "Date;Heure;"
+        header += ";".join([ "\"Canal %d\"" % (p+1) for p in range(_NUM_OUT) ]) + ";"
+        header += ";".join([ "\"Temps %d\"" % (p+1) for p in range(_NUM_OUT) ]) + ";"
         header += "\n"
         self.wfile.write(header.encode("utf-8"))
 
@@ -349,29 +349,29 @@ class MyHandler(BaseHTTPRequestHandler):
             s = ""
             e = ev["epoch"]
             t = time.localtime(e)
-            s += time.strftime("%Y-%m-%d\t%H:%M:%S\t", t)
+            s += time.strftime("%Y-%m-%d;%H:%M:%S;", t)
 
             st = ev["state"]
             for p in range(_NUM_OUT):
                 mask = 1<<p
                 if st & mask == 0:
-                    s += "A\t"
+                    s += "A;"
                     if last_m[p] > 0:
                         delta[p] = e - last_m[p]
                         last_m[p] = 0
                 else:
-                    s += "M\t"
+                    s += "M;"
                     last_m[p] = e
             for p in range(_NUM_OUT):
                 d = delta[p]
                 if d > 0:
-                    s += locale.format_string("%f\t", d / 3600.)
+                    s += locale.format_string("%f;", d / 3600.)
                     delta[p] = 0
                 else:
-                    s += "\t"
+                    s += ";"
             s += "\n"
             self.wfile.write(s.encode("utf-8"))
-        logging.debug("@@ Download %d events", len(events))
+        logging.info("Download %d events", len(events))
 
 
 def signal_handler(signum, frame):
