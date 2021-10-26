@@ -27,6 +27,7 @@ from io import StringIO
 import argparse
 import binascii
 import json
+import locale
 import logging
 import math
 import os
@@ -64,6 +65,9 @@ _httpd_thread = None
 _piface_thread = None
 _args = None
 _mock_epoch = int(time.time())
+
+# If this fails, install it using raspi-config > Localization.
+locale.setlocale(locale.LC_NUMERIC, "fr_FR.UTF-8")
 
 
 def getEpoch():
@@ -335,9 +339,9 @@ class MyHandler(BaseHTTPRequestHandler):
         last_m = [ 0 ] * _NUM_OUT
         delta = [ 0 ] * _NUM_OUT
 
-        header = "Date,Heure,"
-        header += ",".join([ "\"Canal #%d\"" % (p+1) for p in range(_NUM_OUT) ]) + ","
-        header += ",".join([ "\"Temps #%d\"" % (p+1) for p in range(_NUM_OUT) ]) + ","
+        header = "Date\tHeure\t"
+        header += "\t".join([ "\"Canal #%d\"" % (p+1) for p in range(_NUM_OUT) ]) + "\t"
+        header += "\t".join([ "\"Temps #%d\"" % (p+1) for p in range(_NUM_OUT) ]) + "\t"
         header += "\n"
         self.wfile.write(header.encode("utf-8"))
 
@@ -345,26 +349,26 @@ class MyHandler(BaseHTTPRequestHandler):
             s = ""
             e = ev["epoch"]
             t = time.localtime(e)
-            s += time.strftime("%Y-%m-%d,%H:%M:%S,", t)
+            s += time.strftime("%Y-%m-%d\t%H:%M:%S\t", t)
 
             st = ev["state"]
             for p in range(_NUM_OUT):
                 mask = 1<<p
                 if st & mask == 0:
-                    s += "A,"
+                    s += "A\t"
                     if last_m[p] > 0:
                         delta[p] = e - last_m[p]
                         last_m[p] = 0
                 else:
-                    s += "M,"
+                    s += "M\t"
                     last_m[p] = e
             for p in range(_NUM_OUT):
                 d = delta[p]
                 if d > 0:
-                    s += "%f," % (d / 3600.)
+                    s += locale.format_string("%f\t", d / 3600.)
                     delta[p] = 0
                 else:
-                    s += ","
+                    s += "\t"
             s += "\n"
             self.wfile.write(s.encode("utf-8"))
         logging.debug("@@ Download %d events", len(events))
