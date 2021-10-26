@@ -92,20 +92,35 @@ def injectMockEvents():
         _data.reset()
 
 
+class PiFaceWrapper:
+    def __init__(self, piface):
+        self._piface = piface
+
+    def turn_off(self, pin_num):
+        self._piface.output_pins[pin_num].turn_off()
+
+    def turn_on(self, pin_num):
+        self._piface.output_pins[pin_num].turn_on()
+
+    def value(self, pin_num):
+        return _piface.input_pins[pin_num].value
+
+
 class MockPiFace:
     def __init__(self):
         logging.info("Using Mock PiFace IO")
         self.input_pins  = [ self ] * _NUM_OUT
         self.output_pins = [ self ] * _NUM_OUT
-    
-    def turn_on(self):
-        pass
+        self._state = [ 0 ] * _NUM_OUT
 
-    def turn_off(self):
-        pass
+    def turn_off(self, pin_num):
+        self._state[pin_num] = 0
 
-    def value(self):
-        return _mock_epoch % 2
+    def turn_on(self, pin_num):
+        self._state[pin_num] = 1
+
+    def value(self, pin_num):
+        return self._state[pin_num] # (math.floor(getEpoch() / 3600) + pin_num) % 2
 
 
 class PiscineData:
@@ -154,9 +169,9 @@ class PiscineData:
                 self.events.append(new_evt)
                 if _DUP_OUT:
                     if self._get_from_int(self.state, pin_num):
-                        _piface.output_pins[pin_num].turn_on()
+                        _piface.turn_on(pin_num)
                     else:
-                        _piface.output_pins[pin_num].turn_off()
+                        _piface.turn_off(pin_num)
         if new_evt is not None:
             self._append_to_file(new_evt["epoch"], new_evt["state"])
 
@@ -390,16 +405,16 @@ def setup():
     logging.info("Setup PiFace")
     global _piface
     if _HAS_PIFACE:
-        _piface = pifacedigitalio.PiFaceDigital()
+        _piface = PiFaceWrapper(pifacedigitalio.PiFaceDigital())
     else:
         _piface = MockPiFace()
 
     # Toggle all outputs to indicate the service has started.
     for p in range(_NUM_OUT):
-        _piface.output_pins[p].turn_on()
+        _piface.turn_on(p)
     time.sleep(0.3)
     for p in range(_NUM_OUT):
-        _piface.output_pins[p].turn_off()
+        _piface.turn_off(p)
 
     injectMockEvents()
     _data.initReadFiles()
@@ -425,7 +440,7 @@ def piface_monitor_async():
     last = [ 0 ] * _NUM_OUT
     while _running:
         for p in range(_NUM_OUT):
-            v = _piface.input_pins[p].value
+            v = _piface.value(p)
             if v != last[p]:
                 logging.info("Piface change: pin %s -> state %s", p, v)
                 last[p] = v
