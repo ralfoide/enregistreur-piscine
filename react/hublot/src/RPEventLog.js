@@ -1,12 +1,12 @@
 import "./RPApp.css"
-import RPConstants from "./RPConstants"
+// import RPConstants from "./RPConstants"
 import RPCommon from "./RPCommon"
 import React from "react"
 import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
-import Button from "react-bootstrap/Button"
-import { useEffect, useState } from "react"
-import axios from "axios"
+// import Button from "react-bootstrap/Button"
+// import { useEffect, useState } from "react"
+// import axios from "axios"
 import Moment from "react-moment"
 
 function _insertEvent(ev) {
@@ -22,73 +22,70 @@ function _insertEvent(ev) {
         </tr> )
 }
 
-const RPEventLog = () => {
-    const [ _data, _setData ] = useState( { events: [], epoch: 0 } )
-    const [ _status, _setStatus ] = useState( "Chargement en cours" )
+const RPEventLog = ( { data } ) => {
+    // const [ _data, _setData ] = useState( { events: [], epoch: 0 } )
+    // const [ _status, _setStatus ] = useState( "Chargement en cours" )
 
-    useEffect( () => {
-        _fetchData()
-        const interval = setInterval( () => _fetchData(), RPConstants.EventsRefreshMs )
-        return () => clearInterval(interval)
-      }, [])
+    // useEffect( () => {
+    //     _fetchData()
+    //     const interval = setInterval( () => _fetchData(), RPConstants.EventsRefreshMs )
+    //     return () => clearInterval(interval)
+    //   }, [])
     
-    async function _fetchData() {
-        const url = RPConstants.eventsGetUrl()
-        RPConstants.log("@@ fetch " + url)
-        axios.get(url)
-            .then( (response) => {
-                // RPConstants.log("@@ axios response: " + JSON.stringify(response))
-                _setStatus(undefined)
-                let data = response.data
-                data.events.sort((a, b) => a.epoch - b.epoch)
-                data.last_date = ""
-                if (data.events.length > 0) {
-                    const last_epoch = data.events[data.events.length - 1].epoch
-                    const d = new Date(last_epoch)
-                    const s = "" + d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay()
-                    data.last_date = s
-                }
-                _setData(data)
-            })
-            .catch( (error) => {
-                _setStatus("Erreur de chargement")
-                RPConstants.log("@@ axios error: " + JSON.stringify(error))
-            })
-    }
+    // async function _fetchData() {
+    //     const url = RPConstants.eventsGetUrl()
+    //     RPConstants.log("@@ fetch " + url)
+    //     axios.get(url)
+    //         .then( (response) => {
+    //             // RPConstants.log("@@ axios response: " + JSON.stringify(response))
+    //             _setStatus(undefined)
+    //             let data = response.data
+    //             data.events.sort((a, b) => a.epoch - b.epoch)
+    //             data.last_date = ""
+    //             if (data.events.length > 0) {
+    //                 const last_epoch = data.events[data.events.length - 1].epoch
+    //                 const d = new Date(last_epoch)
+    //                 const s = "" + d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay()
+    //                 data.last_date = s
+    //             }
+    //             _setData(data)
+    //         })
+    //         .catch( (error) => {
+    //             _setStatus("Erreur de chargement")
+    //             RPConstants.log("@@ axios error: " + JSON.stringify(error))
+    //         })
+    // }
 
-    return (_status !== undefined) ? (
+    // return (_status !== undefined) ? (
+    //     <Container>
+    //         <Card>
+    //             <Card.Body>
+    //                 <Card.Title>Evénements</Card.Title>
+    //                 <Card.Text>
+    //                     { _status }
+    //                 </Card.Text>
+    //             </Card.Body>
+    //         </Card>
+    //     </Container>
+    // ) : (
+    return (
         <Container>
             <Card>
                 <Card.Body>
                     <Card.Title>Evénements</Card.Title>
                     <Card.Text>
-                        { _status }
-                    </Card.Text>
-                </Card.Body>
-            </Card>
-        </Container>
-    ) : (
-        <Container>
-            <Card>
-                <Card.Body>
-                    <Card.Title>Evénements { _data.last_date == "" ? "" : " pour " + _data.last_date}</Card.Title>
-                    <Button href={ RPConstants.downloadUrl() }>Télécharger</Button>
-                    <Card.Text>
                         <table><thead><tr>
                         { RPCommon.insertHeader("evt") }
                         </tr></thead>
                         <tbody>
-                        { _data.events.map( ev => _insertEvent(ev) ) }
+                        { data.events.map( ev => _insertEvent(ev) ) }
                         <tr>
-                        <td colSpan="9" key="evt-end">
-                        Mis a jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
-                        </td>
                         </tr></tbody></table>
                     </Card.Text>
                 </Card.Body>
             </Card>
         </Container>
-  )
+    )
 }
 
 export default RPEventLog

@@ -68,54 +68,56 @@ function _transformData(input) {
 }
 
 
-const RPCharts = () => {
-    const [ _data, _setData ] = useState( [] )
-    const [ _status, _setStatus ] = useState( "Chargement en cours" )
+const RPCharts = ( { data } ) => {
 
-    useEffect( () => {
-        _fetchData()
-        const interval = setInterval( () => _fetchData(), RPConstants.CurrentRefrehsMs )
-        return () => clearInterval(interval)
-      }, [])
+    // const [ _data, _setData ] = useState( [] )
+    // const [ _status, _setStatus ] = useState( "Chargement en cours" )
 
-    async function _fetchData() {
-        const url = RPConstants.eventsGetUrl()
-        RPConstants.log("@@ fetch " + url)
-        axios.get(url)
-            .then( (response) => {
-                // RPConstants.log("@@ axios response: " + JSON.stringify(response))
-                _setStatus(undefined)
-                _setData(_transformData(response.data))
-            })
-            .catch( (error) => {
-                _setStatus("Erreur de chargement")
-                RPConstants.log("@@ axios error: " + JSON.stringify(error))
-            })
-    }
+    // useEffect( () => {
+    //     _fetchData()
+    //     const interval = setInterval( () => _fetchData(), RPConstants.CurrentRefrehsMs )
+    //     return () => clearInterval(interval)
+    //   }, [])
 
-    return (_status !== undefined) ? (
+    // async function _fetchData() {
+    //     const url = RPConstants.eventsGetUrl()
+    //     RPConstants.log("@@ fetch " + url)
+    //     axios.get(url)
+    //         .then( (response) => {
+    //             // RPConstants.log("@@ axios response: " + JSON.stringify(response))
+    //             _setStatus(undefined)
+    //             _setData(_transformData(response.data))
+    //         })
+    //         .catch( (error) => {
+    //             _setStatus("Erreur de chargement")
+    //             RPConstants.log("@@ axios error: " + JSON.stringify(error))
+    //         })
+    // }
+
+    // return (_status !== undefined) ? (
+    //     <Container>
+    //         <Card>
+    //             <Card.Body>
+    //                 <Card.Title>Courbes</Card.Title>
+    //                 <Card.Text>
+    //                     { _status }
+    //                 </Card.Text>
+    //             </Card.Body>
+    //         </Card>
+    //     </Container>
+    // ) : (
+    return (
         <Container>
             <Card>
                 <Card.Body>
                     <Card.Title>Courbes</Card.Title>
                     <Card.Text>
-                        { _status }
+                        { _insertCharts(_transformData(data)) }
                     </Card.Text>
                 </Card.Body>
             </Card>
         </Container>
-    ) : (
-        <Container>
-            <Card>
-                <Card.Body>
-                    <Card.Title>Courbes</Card.Title>
-                    <Card.Text>
-                        { _insertCharts(_data) }
-                    </Card.Text>
-                </Card.Body>
-            </Card>
-        </Container>
-  )
+    )
 }
 
 export default RPCharts

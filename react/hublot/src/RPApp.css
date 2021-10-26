@@ -2,6 +2,11 @@ body {
   --bs-body-bg: lightgray;
 }
 
+.container {
+  /* We don't nest containers, so remove their margin aka gutter. */
+  --bs-gutter-x: 0px;
+}
+
 .RPApp {
 }
 

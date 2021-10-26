@@ -1,12 +1,10 @@
 import "./RPApp.css"
 import React from "react"
-import { HashRouter as Router, /*Switch,*/ Route } from "react-router-dom"
-//import Container from "react-bootstrap/Container"
+import { HashRouter as Router, Route } from "react-router-dom"
 import RPInputs from "./RPInputs"
-import RPEventLog from "./RPEventLog"
+import RPEvents from "./RPEvents"
 import RPHeader from "./RPHeader"
 import RPConstants from "./RPConstants"
-import RPCharts from "./RPCharts"
 
 RPConstants.init()
 
@@ -21,9 +19,8 @@ const RPApp = () => {
                         <br/>
                         <RPInputs/>
                         <br/>
-                        <RPCharts/>
+                        <RPEvents/>
                         <br/>
-                        <RPEventLog/>
                     </div> ) } } />
             </Router>
         </div>
