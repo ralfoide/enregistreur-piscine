@@ -336,8 +336,8 @@ class MyHandler(BaseHTTPRequestHandler):
         delta = [ 0 ] * _NUM_OUT
 
         header = "Date,Heure,"
-        header += ",".join([ "\"Canal #%d\"" % (p+1) for p in range(_NUM_OUT) ])
-        header += ",".join([ "\"Temps #%d\"" % (p+1) for p in range(_NUM_OUT) ])
+        header += ",".join([ "\"Canal #%d\"" % (p+1) for p in range(_NUM_OUT) ]) + ","
+        header += ",".join([ "\"Temps #%d\"" % (p+1) for p in range(_NUM_OUT) ]) + ","
         header += "\n"
         self.wfile.write(header.encode("utf-8"))
 
