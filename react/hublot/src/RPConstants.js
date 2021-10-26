@@ -23,16 +23,27 @@ function _log(param) {
     if (RPVerbose) console.log("@@ " + param)
 }
 
+function _isDev() {
+    // This is the "npm start" dev environment if current port is 3000.
+    return window.location.port === "3000"
+}
+
+function _getServBaseUrl() {
+    return window.location.protocol
+        + "//" + window.location.hostname
+        + (_isDev() ? ":8080" : "/serv")
+}
+
 function _getCurrentUrl() {
-    return window.location.protocol + "//" + window.location.hostname + ":8080/current"
+    return _getServBaseUrl() + "/current"
 }
 
 function _getEventsUrl() {
-    return window.location.protocol + "//" + window.location.hostname + ":8080/events"
+    return _getServBaseUrl() + "/events"
 }
 
 function _getDownloadUrl() {
-    return window.location.protocol + "//" + window.location.hostname + ":8080/download"
+    return _getServBaseUrl() + "/download"
 }
 
 const RPConstants = {

@@ -20,7 +20,7 @@ const RPInputs = () => {
     
     async function _fetchData() {
         const url = RPConstants.currentGetUrl()
-        RPConstants.log("@@ fetch " + url)
+        // DEBUG RPConstants.log("fetch " + url)
         axios.get(url)
             .then( (response) => {
                 // RPConstants.log("@@ axios response: " + JSON.stringify(response))

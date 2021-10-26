@@ -1,6 +1,5 @@
 import "./RPApp.css"
 import RPConstants from "./RPConstants"
-import RPCommon from "./RPCommon"
 import RPCharts from "./RPCharts"
 import RPEventLog from "./RPEventLog"
 import React from "react"
@@ -34,7 +33,7 @@ const RPEvents = () => {
     
     async function _fetchData() {
         const url = RPConstants.eventsGetUrl()
-        RPConstants.log("@@ fetch " + url)
+        // DEBUG RPConstants.log("fetch " + url)
         axios.get(url)
             .then( (response) => {
                 // RPConstants.log("@@ axios response: " + JSON.stringify(response))
