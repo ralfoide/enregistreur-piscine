@@ -8,7 +8,7 @@
 # Timestamps are local Unix epoch in seconds (not millis).
 #
 # Data gets saved in _data_dir (argument parser validates it exist).
-# File name is rpiscine_yyyy-mm-dd_NN.txt
+# File name is rpiscine_yyyy-mm_NN.txt (one per month)
 # File format is text.
 # First line is a signature: rpiscine_v1\n
 # One line per entry: %x<epoch> %x<state> %x<crc>\n (all numbers as hex without 0x).
@@ -28,7 +28,9 @@ import argparse
 import binascii
 import json
 import logging
+import math
 import os
+import random
 import re
 import time
 import threading
@@ -53,6 +55,7 @@ _HTTP_PORT = 8080
 _NUM_OUT = 8
 _DUP_OUT = True  # true to duplicate input on output pins
 _FILE_HEADER="rpiscine_v1"
+_DOWNLOAD_NUM_MONTHS = 6
 _running = True
 _piface = None
 _data = None
@@ -75,12 +78,18 @@ def injectMockEvents():
     if _MOCK:
         global _mock_epoch
         _tmp_epoch = _mock_epoch
-        for i in range(0, _NUM_OUT):
-            _mock_epoch = _tmp_epoch - 1800 - 3600*i
-            _data.updatePin(i, 1)
-            _mock_epoch = _tmp_epoch - 10 - 3600*i
-            _data.updatePin(i, 0)
+        # generate 10 events for 0.5-5 hours each up to one year ago per input pin.
+        one_year_sec = 365 * 24 * 3600
+        max_hours_sec = 5 * 3600
+        rnd = random.Random()
+        for p in range(0, _NUM_OUT):
+            for k in range (0, 10):
+                _mock_epoch = _tmp_epoch - rnd.randint(0, one_year_sec)
+                _data.updatePin(p, 1)
+                _mock_epoch += rnd.randint(max_hours_sec / 10, max_hours_sec)
+                _data.updatePin(p, 0)
         _mock_epoch = _tmp_epoch
+        _data.reset()
 
 
 class MockPiFace:
@@ -107,17 +116,20 @@ class PiscineData:
         self.state = 0
         self._filepath = None
 
+    # --- IO API ---
+
     def getState(self):
         with self.lock:
             return self.state
 
     def getEvents(self):
-        """ Returns up to 24-hour of events. """
+        """ Returns up to _DOWNLOAD_NUM_MONTHS of events. """
+        # TBD should really be configured per call site (e.g. 24-hour for event log, 6 mo for download).
         with self.lock:
             if len(self.events) == 0:
                 return []
             ts_max = self.events[-1]["epoch"]
-            ts_min = ts_max - 24*3600
+            ts_min = ts_max - _DOWNLOAD_NUM_MONTHS * 24 * 3600
             events = [ ev for ev in self.events if ev["epoch"] >= ts_min and ev["epoch"] <= ts_max ]
             return events
 
@@ -148,12 +160,31 @@ class PiscineData:
         if new_evt is not None:
             self._append_to_file(new_evt["epoch"], new_evt["state"])
 
-    def readDataFile(self):
+    # --- Storage API ---
+
+    def reset(self):
+        """Empties all events. Forgets last file read. Used to remove mock entries."""
+        self._filepath = None
+        self.events = []
+
+    def initReadFiles(self, num_previous_months=12):
+        """Reads all previous files, up to the number of months indicated."""
+        epoch = getEpoch()
+        # Crappy implementation that needs to be changed. This will fail with e.g. February.
+        avg_month_epoch = math.floor(365 / 12 * 24 * 3600)
+        epoch -= avg_month_epoch * num_previous_months
+        for month in range(num_previous_months, -1, -1):
+            self.readDataFile(epoch)
+            epoch += avg_month_epoch
+
+    def readDataFile(self, epoch=None):
         # Use epoch to figure the proper data file path
-        t = time.localtime(getEpoch())
+        if epoch is None:
+            epoch = getEpoch()
+        t = time.localtime(epoch)
         n = 0
         while True:
-            fn = "rpiscine_%s-%s-%s_%02d.txt" % (t.tm_year, t.tm_mon, t.tm_mday, n)
+            fn = self._filename(t, n, "txt")
             fp = os.path.join(_args.data_dir, fn)
             # Don"t load the file if already loaded.
             if self._filepath == fp:
@@ -169,10 +200,18 @@ class PiscineData:
                 return
             # No success (file exist and is not good), try next file.
             n += 1
-    
+
+    def _filename(self, time_struct, n=-1, ext="") -> str:
+        fn = "rpiscine_%s-%s_" % (time_struct.tm_year, time_struct.tm_mon)
+        if n >= 0:
+            fn += "%02d" % n
+        if ext:
+            fn += "." + ext
+        return fn
+
     def _append_to_file(self, epoch, state):        
         t = time.localtime(getEpoch())
-        fn = "rpiscine_%s-%s-%s_" % (t.tm_year, t.tm_mon, t.tm_mday)
+        fn = self._filename(t)
         if self._filepath is None or not self._filepath.startswith(fn):
             # No initial file or date has changed, read/create the new file
             self.readDataFile()
@@ -274,17 +313,39 @@ class MyHandler(BaseHTTPRequestHandler):
         self._set_response("text/plain")
         self.send_header("Content-Disposition", "attachment; filename=\"%s.csv\"" % name)
         self._end_headers()
+        #
+        # CSV format, per column:
+        # - date in YYYY/MM/DD format
+        # - time in HH:MM:SS format (local time)
+        # - for each channel: M or A (1 or 0)
+        # - for each channel: delta hours
+        last_m = [ 0 ] * _NUM_OUT
+        delta = [ 0 ] * _NUM_OUT
         for ev in events:
             s = ""
+            e = ev["epoch"]
+            t = time.localtime(e)
+            s += time.strftime("%Y-%m-%d,%H:%M:%S,", t)
+
             st = ev["state"]
             for p in range(_NUM_OUT):
                 mask = 1<<p
                 if st & mask == 0:
                     s += "A,"
+                    if last_m[p] > 0:
+                        delta[p] = e - last_m[p]
+                        last_m[p] = 0
                 else:
                     s += "M,"
-            t = time.localtime(ev["epoch"])
-            s += time.strftime("\"%Y-%m-%d %H:%M:%S\"\n", t)
+                    last_m[p] = e
+            for p in range(_NUM_OUT):
+                d = delta[p]
+                if d > 0:
+                    s += "%f," % (d / 3600.)
+                    delta[p] = 0
+                else:
+                    s += ","
+            s += "\n"
             self.wfile.write(s.encode("utf-8"))
         logging.debug("@@ Download %d events", len(events))
 
@@ -293,14 +354,6 @@ def signal_handler(signum, frame):
     logging.info("Signal handler called with signal %s", signum)
     global _running
     _running = False
-
-# def input_on(event):
-#     logging.info("Input on: %s", event.pin_num)
-#     event.chip.output_pins[event.pin_num].turn_on()
-
-# def input_off(event):
-#     logging.info("Input off: %s", event.pin_num)
-#     event.chip.output_pins[event.pin_num].turn_off()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="RPiscine REST Service")
@@ -342,6 +395,7 @@ def setup():
         _piface.output_pins[p].turn_off()
 
     injectMockEvents()
+    _data.initReadFiles()
 
     server_address = ( "", _HTTP_PORT )
     logging.info("Setup REST server at %s", server_address)
