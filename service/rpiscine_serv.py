@@ -109,8 +109,6 @@ class PiFaceWrapper:
 class MockPiFace:
     def __init__(self):
         logging.info("Using Mock PiFace IO")
-        self.input_pins  = [ self ] * _NUM_OUT
-        self.output_pins = [ self ] * _NUM_OUT
         self._state = [ 0 ] * _NUM_OUT
 
     def turn_off(self, pin_num):
@@ -126,27 +124,27 @@ class MockPiFace:
 class PiscineData:
     def __init__(self):
         logging.info("Piscine data created")
-        self.lock = threading.Lock()
-        self.events = []  # { "state": _data.getState(), "epoch": 42 }
-        self.state = 0
+        self._lock = threading.Lock()
+        self._events = []  # { "state": _data.getState(), "epoch": 42 }
+        self._state = 0
         self._filepath = None
 
     # --- IO API ---
 
     def getState(self):
-        with self.lock:
-            return self.state
+        with self._lock:
+            return self._state
 
     def getEvents(self):
         """ Returns up to _DOWNLOAD_NUM_MONTHS of events. """
         # TBD should really be configured per call site (e.g. 24-hour for event log, 6 mo for download).
-        with self.lock:
-            if len(self.events) == 0:
+        with self._lock:
+            if len(self._events) == 0:
                 return []
-            ts_max = self.events[-1]["epoch"]
+            ts_max = self._events[-1]["epoch"]
             ts_min = ts_max - _DOWNLOAD_NUM_MONTHS * 31 * 24 * 3600
-            events = [ ev for ev in self.events if ev["epoch"] >= ts_min and ev["epoch"] <= ts_max ]
-            return events
+            evts = [ ev for ev in self._events if ev["epoch"] >= ts_min and ev["epoch"] <= ts_max ]
+            return evts
 
     def _set_to_int(self, val, pin_num, is_on):
         if is_on:
@@ -160,15 +158,15 @@ class PiscineData:
     def updatePin(self, pin_num, is_on):
         """ pin_num: 0.._NUM_OUT, is_on: Boolean. """
         new_evt = None
-        with self.lock:
-            st_old = self.state
+        with self._lock:
+            st_old = self._state
             st_new = self._set_to_int(st_old, pin_num, is_on)
             if st_new != st_old:
-                self.state = st_new
+                self._state = st_new
                 new_evt = { "state": st_new, "epoch": getEpoch() }
-                self.events.append(new_evt)
+                self._events.append(new_evt)
                 if _DUP_OUT:
-                    if self._get_from_int(self.state, pin_num):
+                    if self._get_from_int(self._state, pin_num):
                         _piface.turn_on(pin_num)
                     else:
                         _piface.turn_off(pin_num)
@@ -180,7 +178,7 @@ class PiscineData:
     def reset(self):
         """Empties all events. Forgets last file read. Used to remove mock entries."""
         self._filepath = None
-        self.events = []
+        self._events = []
 
     def initReadFiles(self, num_previous_months=12):
         """Reads all previous files, up to the number of months indicated."""
@@ -254,7 +252,7 @@ class PiscineData:
                     logging.debug("@@ Invalid header in '%s': '%s'", filepath, head)
                 else:
                     n = 0
-                    with self.lock:
+                    with self._lock:
                         pattern = re.compile(r"\b[0-9a-f]+", re.IGNORECASE)
                         for line in lines:
                             try:
@@ -269,14 +267,14 @@ class PiscineData:
                                     if crc == self._crc(epoch, state):
                                         # This is a good entry
                                         n += 1
-                                        self.events.append( { "state": state, "epoch": epoch } )
+                                        self._events.append( { "state": state, "epoch": epoch } )
                                         continue
                                 logging.debug("@@ Invalid line in '%s': '%s'", filepath, line)
                             except Exception:
                                 logging.debug("@@ Invalid line in '%s': '%s'", filepath, line)
                     # This is a valid file, whether we read any lines or not.
-                    with self.lock:
-                        self.events.sort(key=lambda i: i["epoch"])
+                    with self._lock:
+                        self._events.sort(key=lambda i: i["epoch"])
                     logging.debug("@@ Loaded %d entries from '%s'", n, filepath)
                     return True
         return False
@@ -291,7 +289,7 @@ class MyHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", mimeType)
 
     # Disable CORS errors
-    def _end_headers(self):
+    def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
         super().end_headers()
 
@@ -301,7 +299,7 @@ class MyHandler(BaseHTTPRequestHandler):
             return
 
         self._set_response()
-        self._end_headers()
+        self.end_headers()
         data = None
         if self.path == "/current":
             data = { "state": _data.getState(), "epoch": getEpoch() }
@@ -327,7 +325,7 @@ class MyHandler(BaseHTTPRequestHandler):
             name += "_%s-%s-%s" % (t.tm_year, t.tm_mon, t.tm_mday)
         self._set_response("text/plain")
         self.send_header("Content-Disposition", "attachment; filename=\"%s.csv\"" % name)
-        self._end_headers()
+        self.end_headers()
         #
         # CSV format, per column:
         # - date in YYYY/MM/DD format
