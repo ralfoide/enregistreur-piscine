@@ -103,7 +103,7 @@ class PiFaceWrapper:
         self._piface.output_pins[pin_num].turn_on()
 
     def value(self, pin_num):
-        return _piface.input_pins[pin_num].value
+        return self._piface.input_pins[pin_num].value
 
 
 class MockPiFace:
