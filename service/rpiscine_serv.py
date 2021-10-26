@@ -318,9 +318,16 @@ class MyHandler(BaseHTTPRequestHandler):
         # - date in YYYY/MM/DD format
         # - time in HH:MM:SS format (local time)
         # - for each channel: M or A (1 or 0)
-        # - for each channel: delta hours
+        # - for each channel: delta hours in float point
         last_m = [ 0 ] * _NUM_OUT
         delta = [ 0 ] * _NUM_OUT
+
+        header = "Date,Heure,"
+        header += ",".join([ "\"Canal #%d\"" % (p+1) for p in range(_NUM_OUT) ])
+        header += ",".join([ "\"Temps #%d\"" % (p+1) for p in range(_NUM_OUT) ])
+        header += "\n"
+        self.wfile.write(header.encode("utf-8"))
+
         for ev in events:
             s = ""
             e = ev["epoch"]
