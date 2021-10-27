@@ -5,6 +5,7 @@ import RPInputs from "./RPInputs"
 import RPEvents from "./RPEvents"
 import RPHeader from "./RPHeader"
 import RPConstants from "./RPConstants"
+import RPMachine from "./RPMachine"
 
 RPConstants.init()
 
@@ -16,6 +17,8 @@ const RPApp = () => {
                 <Route path="/" render={props => {
                     return (
                     <div>
+                        <br/>
+                        <RPMachine/>
                         <br/>
                         <RPInputs/>
                         <br/>

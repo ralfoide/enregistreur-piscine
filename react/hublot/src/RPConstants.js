@@ -34,25 +34,16 @@ function _getServBaseUrl() {
         + (_isDev() ? ":8080" : "/serv")
 }
 
-function _getCurrentUrl() {
-    return _getServBaseUrl() + "/current"
-}
-
-function _getEventsUrl() {
-    return _getServBaseUrl() + "/events"
-}
-
-function _getDownloadUrl() {
-    return _getServBaseUrl() + "/download"
-}
-
 const RPConstants = {
     init: _init,
     log: _log,
     NumOut: 8,
-    currentGetUrl: _getCurrentUrl,
-    eventsGetUrl: _getEventsUrl,
-    downloadUrl: _getDownloadUrl,
+    fetchCurrentUrl:    () => _getServBaseUrl() + "/current",
+    fetchEventsUrl:     () => _getServBaseUrl() + "/events",
+    fetchIpUrl:         () => _getServBaseUrl() + "/ip",
+    downloadUrl:        () => _getServBaseUrl() + "/download",
+    rebootUrl:          () => _getServBaseUrl() + "/reboot",
+    shutdownUrl:        () => _getServBaseUrl() + "/shutdown",
     CurrentRefrehsMs: 5000,
     EventsRefreshMs: 30000,
     InputNames: _InputNames,

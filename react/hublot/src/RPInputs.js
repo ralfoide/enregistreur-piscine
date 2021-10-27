@@ -19,7 +19,7 @@ const RPInputs = () => {
       }, [])
     
     async function _fetchData() {
-        const url = RPConstants.currentGetUrl()
+        const url = RPConstants.fetchCurrentUrl()
         // DEBUG RPConstants.log("fetch " + url)
         axios.get(url)
             .then( (response) => {

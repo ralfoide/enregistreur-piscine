@@ -1,28 +1,48 @@
 import "./RPApp.css"
 import RPConstants from "./RPConstants"
-import RPCharts from "./RPCharts"
-import RPEventLog from "./RPEventLog"
 import React from "react"
 import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
 import Button from "react-bootstrap/Button"
 import { useEffect, useState } from "react"
 import axios from "axios"
-import Moment from "react-moment"
+
+
+function _action(title, url) {
+    const msg = "Etes-vous sûr de vouloir " + title + " ? Il est impossible d'annuler cette action."
+    if (window.confirm(msg)) {
+        axios.get(url)
+        .then( (response) => {
+            window.alert("Resultat: " + JSON.stringify(response))
+        })
+        .catch( (error) => {
+            window.alert("Erreur: " + JSON.stringify(error))
+        })
+    }
+}
 
 function _prepareData(data) {
-    data.events.sort((a, b) => a.epoch - b.epoch)
-    data.first_epoch = ""
-    data.last_epoch = ""
-    if (data.events.length > 0) {
-        data.first_epoch = data.events[0].epoch 
-        data.last_epoch = data.events[data.events.length - 1].epoch
+    let hostname = data.hostname
+    let link = "#"
+    if (hostname !== undefined) {
+        link = "http://" + hostname
+        if (link.search("\\.") === -1) {
+            link += ".local"
+        }
     }
+    data.host_href = link
+    
+    link = data.ip
+    if (link !== undefined) {
+        link = "http://" + link
+    }
+    data.ip_href = link
+
     return data
 }
 
-const RPEvents = () => {
-    const [ _data, _setData ] = useState( { events: [], epoch: 0 } )
+const RPMachine = () => {
+    const [ _data, _setData ] = useState( { hostname: "N/A", ip: "N/A" } )
     const [ _status, _setStatus ] = useState( { text: "Chargement en cours", details: undefined } )
 
     useEffect( () => {
@@ -32,7 +52,7 @@ const RPEvents = () => {
       }, [])
     
     async function _fetchData() {
-        const url = RPConstants.fetchEventsUrl()
+        const url = RPConstants.fetchIpUrl()
         // DEBUG RPConstants.log("fetch " + url)
         axios.get(url)
             .then( (response) => {
@@ -45,12 +65,12 @@ const RPEvents = () => {
                 RPConstants.log("@@ axios error: " + JSON.stringify(error))
             })
     }
-
+    
     return (_status !== undefined) ? (
         <Container>
             <Card>
                 <Card.Body>
-                    <Card.Title>Données</Card.Title>
+                    <Card.Title>Serveur</Card.Title>
                     <Card.Text>
                         { _status.text }
                         <p/>
@@ -63,25 +83,27 @@ const RPEvents = () => {
         <Container>
             <Card>
                 <Card.Body>
-                    <Card.Title>Données</Card.Title>
+                    <Card.Title>Serveur</Card.Title>
                     <Card.Text>
-                        Données: { ' ' }
-                        <Moment local unix locale="fr" format="LL, LTS">{ _data.first_epoch }</Moment>
-                        { ' ' } ... jusqu'&agrave; ... { ' ' }
-                        <Moment local unix locale="fr" format="LL, LTS">{ _data.last_epoch }</Moment>
+                        Nom: <a href={ _data.host_href }>{ _data.hostname }</a>,
+                        Addresse IP: <a href={ _data.ip_href }>{ _data.ip }</a>
                         { ' ' }
-                        <Button size="sm" className="float-end" href={ RPConstants.downloadUrl() }>Télécharger</Button>
-                        <br/>
-                        Affichage mis &agrave; jour: <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
+                        <span className="float-end">
+                        <Button 
+                            size="sm" 
+                            onClick={ () => _action("Redémarrer", RPConstants.rebootUrl) }
+                            >Redémarrer</Button>
+                        { ' ' }
+                        <Button 
+                            size="sm" 
+                            onClick={ () => _action("Eteindre", RPConstants.shutdownUrl) }
+                            >Eteindre</Button>
+                        </span>
                     </Card.Text>
                 </Card.Body>
             </Card>
-            <br/>
-            <RPCharts data={ _data } />
-            <br/>
-            <RPEventLog data={ _data } />
         </Container>
   )
 }
 
-export default RPEvents
+export default RPMachine
