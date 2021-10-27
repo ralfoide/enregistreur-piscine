@@ -36,6 +36,8 @@ import re
 import time
 import threading
 import signal
+import socket
+import subprocess
 import sys
 
 _MOCK = False
@@ -57,6 +59,8 @@ _NUM_OUT = 8
 _DUP_OUT = True  # true to duplicate input on output pins
 _FILE_HEADER="rpiscine_v1"
 _DOWNLOAD_NUM_MONTHS = 6
+_CMD_REBOOT = "/home/pi/bitbucket/rpiscine-scripts/bin/_reboot.sh"
+_CMD_SHUTDOWN = "/home/pi/bitbucket/rpiscine-scripts/bin/_shutdown.sh"
 _running = True
 _piface = None
 _data = None
@@ -309,6 +313,12 @@ class MyHandler(BaseHTTPRequestHandler):
             data = { "state": _data.getState(), "epoch": getEpoch() }
         elif self.path == "/events":
             data = { "events": _data.getEvents(), "epoch": getEpoch() }
+        elif self.path == "/ip":
+            data = self.do_get_ip()
+        elif self.path == "/reboot":
+            data = self.do_reboot()
+        elif self.path == "/shutdown":
+            data = self.do_shutdown()
 
         if data:
             io = StringIO()
@@ -320,6 +330,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.wfile.write("GET request for {}".format(self.path).encode("utf-8"))
 
     def do_download(self):
+        """ Handles event download. Does not return anything. """
         events = _data.getEvents()
         name = "rpiscine"
         if len(events) > 0:
@@ -373,6 +384,36 @@ class MyHandler(BaseHTTPRequestHandler):
             self.wfile.write(s.encode("utf-8"))
         logging.info("Download %d events", len(events))
 
+    def do_get_ip(self):
+        """ Returns the IP address. Returns { hostname: "name", ip: "192.168.1.x" }. """
+        hostname = "Host unknown"
+        ip = "Error"
+        try:
+            hostname = socket.gethostname()			# ⇒ 'rpiscine'
+            ip = socket.gethostbyname(hostname + ".local")
+        except Exception as ex:
+            ip = "Error: {0}".format(ex)
+        return { "hostname": hostname, "ip": ip }
+
+    def do_reboot(self):
+        """ Schedules a reboot. Returns { status: "ok" or "error" }. """
+        status = "Error reboot failed"
+        if _MOCK:
+            status = "Mock reboot succeeded"
+        else:
+            subprocess.run(_CMD_REBOOT, shell=True)
+            status = "Reboot initiated"
+        return { "status": status }
+
+    def do_shutdown(self):
+        """ Schedules a shutdown. Returns { status: "ok" or "error" }. """
+        status = "Error shutdown failed"
+        if _MOCK:
+            status = "Mock shutdown succeeded"
+        else:
+            subprocess.run(_CMD_SHUTDOWN, shell=True)
+            status = "Shutdown initiated"
+        return { "status": status }
 
 def signal_handler(signum, frame):
     logging.info("Signal handler called with signal %s", signum)
@@ -440,6 +481,9 @@ def http_serve_forever_async():
 def piface_monitor_async():
     logging.info("Piface thread started")
     last = [ 0 ] * _NUM_OUT
+    for p in range(_NUM_OUT):
+        last[p] = _piface.value(p)
+        logging.info("Piface init: pin %s -> state %s", p, last[p])
     while _running:
         for p in range(_NUM_OUT):
             v = _piface.value(p)
