@@ -13,10 +13,15 @@ function _action(title, getUrlMethod) {
     if (window.confirm(msg)) {
         axios.get(getUrlMethod())
         .then( (response) => {
-            window.alert("Resultat: " + JSON.stringify(response))
+            let msg = response.data
+            if (msg !== undefined) { msg = msg.status }
+            if (msg === undefined) { msg = JSON.stringify(response) }
+            window.alert("Resultat: " + msg)
         })
         .catch( (error) => {
-            window.alert("Erreur: " + JSON.stringify(error))
+            let msg = error.message
+            if (msg === undefined) { msg = JSON.stringify(error) }
+            window.alert("Erreur: " + JSON.stringify(msg))
         })
     }
 }

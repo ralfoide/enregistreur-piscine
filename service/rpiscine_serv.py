@@ -397,22 +397,22 @@ class MyHandler(BaseHTTPRequestHandler):
 
     def do_reboot(self):
         """ Schedules a reboot. Returns { status: "ok" or "error" }. """
-        status = "Error reboot failed"
+        status = "Erreur Redemarrage"
         if _MOCK:
-            status = "Mock reboot succeeded"
+            status = "Mock reboot succeeded OK"
         else:
             subprocess.run(_CMD_REBOOT, shell=True)
-            status = "Reboot initiated"
+            status = "Redemarrage en cours"
         return { "status": status }
 
     def do_shutdown(self):
         """ Schedules a shutdown. Returns { status: "ok" or "error" }. """
-        status = "Error shutdown failed"
+        status = "Erreur Eteinte"
         if _MOCK:
-            status = "Mock shutdown succeeded"
+            status = "Mock shutdown succeeded OK"
         else:
             subprocess.run(_CMD_SHUTDOWN, shell=True)
-            status = "Shutdown initiated"
+            status = "Eteinte en cours"
         return { "status": status }
 
 def signal_handler(signum, frame):
