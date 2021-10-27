@@ -4,6 +4,7 @@ import RPInputs from "./RPInputs"
 import RPEvents from "./RPEvents"
 import RPConstants from "./RPConstants"
 import RPMachine from "./RPMachine"
+import RPFooter from "./RPFooter"
 
 RPConstants.init()
 
@@ -16,6 +17,7 @@ const RPApp = () => {
             <br/>
             <RPEvents/>
             <br/>
+            <RPFooter/>
         </div>
   )
 }
