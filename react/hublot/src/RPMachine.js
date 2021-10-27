@@ -8,10 +8,10 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 
 
-function _action(title, url) {
+function _action(title, getUrlMethod) {
     const msg = "Etes-vous sûr de vouloir " + title + " ? Il est impossible d'annuler cette action."
     if (window.confirm(msg)) {
-        axios.get(url)
+        axios.get(getUrlMethod())
         .then( (response) => {
             window.alert("Resultat: " + JSON.stringify(response))
         })
