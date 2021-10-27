@@ -1,8 +1,7 @@
 import "./RPApp.css"
 import RPConstants from "./RPConstants"
 import React from "react"
-import Card from "react-bootstrap/Card"
-import Container from "react-bootstrap/Container"
+import Navbar from "react-bootstrap/Navbar"
 import Button from "react-bootstrap/Button"
 import { useEffect, useState } from "react"
 import axios from "axios"
@@ -72,42 +71,39 @@ const RPMachine = () => {
     }
     
     return (_status !== undefined) ? (
-        <Container>
-            <Card>
-                <Card.Body>
-                    <Card.Title>Serveur</Card.Title>
-                    <Card.Text>
-                        { _status.text }
-                        <p/>
-                        { _status.details === undefined ? "" : <pre>{_status.details}</pre>}
-                    </Card.Text>
-                </Card.Body>
-            </Card>
-        </Container>
+        <Navbar bg="dark" variant="dark">
+            <Navbar.Brand href="/">
+                R-Piscine
+            </Navbar.Brand>
+            {/* <Navbar.Collapse className="justify-content-end">
+                <Navbar.Text>
+                    User Name
+                </Navbar.Text>
+            </Navbar.Collapse> */}
+        </Navbar>
     ) : (
-        <Container>
-            <Card>
-                <Card.Body>
-                    <Card.Title>Serveur</Card.Title>
-                    <Card.Text>
-                        Nom: <a href={ _data.host_href }>{ _data.hostname }</a>,
-                        Addresse IP: <a href={ _data.ip_href }>{ _data.ip }</a>
-                        { ' ' }
-                        <span className="float-end">
-                        <Button 
-                            size="sm" 
-                            onClick={ () => _action("Redémarrer", RPConstants.rebootUrl) }
-                            >Redémarrer</Button>
-                        { ' ' }
-                        <Button 
-                            size="sm" 
-                            onClick={ () => _action("Eteindre", RPConstants.shutdownUrl) }
-                            >Eteindre</Button>
-                        </span>
-                    </Card.Text>
-                </Card.Body>
-            </Card>
-        </Container>
+        <Navbar bg="dark" variant="dark">
+            <Navbar.Brand href={ _data.host_href }>
+                R-Piscine
+            </Navbar.Brand>
+            <Navbar.Text>
+            </Navbar.Text>
+            <Navbar.Collapse className="justify-content-end">
+                <Navbar.Text>
+                    Addresse IP: <a href={ _data.ip_href }>{ _data.ip }</a>
+                    <span className="RPGap">{ ' ' }</span>
+                    <Button 
+                        size="sm" 
+                        onClick={ () => _action("Redémarrer", RPConstants.rebootUrl) }
+                        >Redémarrer</Button>
+                    <span className="RPGap">{ ' ' }</span>
+                    <Button 
+                        size="sm" 
+                        onClick={ () => _action("Eteindre", RPConstants.shutdownUrl) }
+                        >Eteindre</Button>
+                </Navbar.Text>
+            </Navbar.Collapse>
+        </Navbar>
   )
 }
 
