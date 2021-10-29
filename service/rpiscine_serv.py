@@ -382,7 +382,8 @@ class MyHandler(BaseHTTPRequestHandler):
                         last_m[p] = 0
                 else:
                     s += "M;"
-                    last_m[p] = e
+                    if last_m[p] <= 0:
+                        last_m[p] = e
             for p in range(_NUM_OUT):
                 d = delta[p]
                 if d > 0:
