@@ -61,6 +61,17 @@ _FILE_HEADER="rpiscine_v1"
 _DOWNLOAD_NUM_MONTHS = 6
 _CMD_REBOOT = "/home/pi/bitbucket/rpiscine-scripts/bin/_reboot.sh"
 _CMD_SHUTDOWN = "/home/pi/bitbucket/rpiscine-scripts/bin/_shutdown.sh"
+_INPUT_NAMES = [  # must match _NUM_OUT
+    { "letter": "P", "short": "Pompe",  "long": "M/A Pompe"             },
+    { "letter": "C", "short": "Chauf",  "long": "M/A Chauffage"         },
+    { "letter": "R", "short": "Sel Rg", "long": "Traitement Sel Rouge"  },
+    { "letter": "V", "short": "Sel Vt", "long": "Traitement Sel Vert"   },
+    { "letter": "5", "short": "In 5",   "long": "Entrée 5"              },
+    { "letter": "6", "short": "In 6",   "long": "Entrée 6"              },
+    { "letter": "7", "short": "In 7",   "long": "Entrée 7"              },
+    { "letter": "8", "short": "In 8",   "long": "Entrée 8"              },
+]
+
 _running = True
 _piface = None
 _data = None
@@ -72,7 +83,6 @@ _mock_epoch = int(time.time())
 
 # If this fails, install it using raspi-config > Localization.
 locale.setlocale(locale.LC_NUMERIC, "fr_FR.UTF-8")
-
 
 def getEpoch():
     if _MOCK:
@@ -351,8 +361,8 @@ class MyHandler(BaseHTTPRequestHandler):
         delta = [ 0 ] * _NUM_OUT
 
         header = "Date;Heure;"
-        header += ";".join([ "\"Canal %d\"" % (p+1) for p in range(_NUM_OUT) ]) + ";"
-        header += ";".join([ "\"Temps %d\"" % (p+1) for p in range(_NUM_OUT) ]) + ";"
+        header += ";".join([ "\"%s\"" % _INPUT_NAMES[p]["short"] for p in range(_NUM_OUT) ]) + ";"
+        header += ";".join([ "\"Heures %s\"" % _INPUT_NAMES[p]["short"] for p in range(_NUM_OUT) ]) + ";"
         header += "\n"
         self.wfile.write(header.encode("utf-8"))
 
