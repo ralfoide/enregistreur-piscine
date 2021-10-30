@@ -1,1 +1,1 @@
-export const RPGitInfo = "Build f7dc87c, 2021-10-30T14:18:21+02:00"
+export const RPGitInfo = "Build 6ad0b96, 2021-10-30T16:17:46+02:00"
