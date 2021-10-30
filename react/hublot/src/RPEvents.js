@@ -1,4 +1,5 @@
 import "./RPApp.css"
+import RPCommon from "./RPCommon"
 import RPConstants from "./RPConstants"
 import RPCharts from "./RPCharts"
 import RPEventLog from "./RPEventLog"
@@ -11,12 +12,40 @@ import axios from "axios"
 import Moment from "react-moment"
 
 function _prepareData(data) {
+    // Sort in-place with oldest event first. This makes processing more logical.
     data.events.sort((a, b) => a.epoch - b.epoch)
     data.first_epoch = ""
     data.last_epoch = ""
-    if (data.events.length > 0) {
-        data.first_epoch = data.events[0].epoch 
-        data.last_epoch = data.events[data.events.length - 1].epoch
+
+    const n = data.events.length
+    if (n > 0) {
+        let ev = data.events[0]
+        data.first_epoch = ev.epoch 
+        data.last_epoch = data.events[n - 1].epoch
+
+        let indices = Array.from( { length: RPConstants.NumOut }, (v, k) => k )
+        let last_m = indices.map( () => 0 )
+
+        const fn = new Intl.NumberFormat("fr-FR", {maximumFractionDigits: 2})
+
+        for (let i = 0; i < n; i++) {
+            let ev = data.events[i]
+            let s = []
+            RPCommon.intToBits(ev.state).forEach( (v, k) => {
+                if (v === 0) { // Arret
+                    if (last_m[k] > 0) {
+                        const delta = (ev.epoch - last_m[k]) / 3600
+                        s.push(RPConstants.InputNames[k].short + ": " + fn.format(delta) + " h")
+                        last_m[k] = 0
+                    }
+                } else {  // Marche
+                    if (last_m[k] <= 0) {
+                        last_m[k] = ev.epoch
+                    }
+                }
+            })
+            ev.delta = s.join(", ")
+        }
     }
     return data
 }
