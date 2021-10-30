@@ -11,6 +11,14 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import Moment from "react-moment"
 
+function _toHourMin(dec_hour) {
+    const hour = Math.floor(dec_hour)
+    let s = `${hour}h `
+    const min = Math.floor((dec_hour - hour) * 60)
+    if (min > 0) { s += min }
+    return s
+}
+
 function _prepareData(data) {
     // Sort in-place with oldest event first. This makes processing more logical.
     data.events.sort((a, b) => a.epoch - b.epoch)
@@ -26,8 +34,6 @@ function _prepareData(data) {
         let indices = Array.from( { length: RPConstants.NumOut }, (v, k) => k )
         let last_m = indices.map( () => 0 )
 
-        const fn = new Intl.NumberFormat("fr-FR", {maximumFractionDigits: 2})
-
         for (let i = 0; i < n; i++) {
             let ev = data.events[i]
             let s = []
@@ -35,7 +41,7 @@ function _prepareData(data) {
                 if (v === 0) { // Arret
                     if (last_m[k] > 0) {
                         const delta = (ev.epoch - last_m[k]) / 3600
-                        s.push(RPConstants.InputNames[k].short + ": " + fn.format(delta) + " h")
+                        s.push(RPConstants.InputNames[k].short + ": " + _toHourMin(delta))
                         last_m[k] = 0
                     }
                 } else {  // Marche
