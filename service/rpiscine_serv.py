@@ -435,6 +435,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="RPiscine REST Service")
     parser.add_argument("-d", "--data-dir", required=True)
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--fake-data", action="store_true")
     global _args
     _args = parser.parse_args()
     logging.info("Data dir: %s", _args.data_dir)
@@ -470,7 +471,8 @@ def setup():
     for p in range(_NUM_OUT):
         _piface.turn_off(p)
 
-    injectMockEvents()
+    if _args.fake_data:
+        injectMockEvents()
     _data.initReadFiles()
 
     server_address = ( "", _HTTP_PORT )

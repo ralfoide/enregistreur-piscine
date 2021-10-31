@@ -52,16 +52,17 @@ function _transformData(input) {
 
         const mask = 1<<k
 
-        let last = -1
+        let last = undefined
         rev_events.forEach( ev => {
+            const x = hourDelta(ev.epoch)
             const y = (ev.state & mask) === 0 ? 0 : 1
-            if (last === -1) { last = y }
-            if (y !== last) {
-                const x = hourDelta(ev.epoch)
-                output[ci].curves[cp].points.push( { x: x, y: last } )
+            if (last === undefined) {
                 output[ci].curves[cp].points.push( { x: x, y: y } )
-                last = y
+            } else if (y !== last.y) {
+                output[ci].curves[cp].points.push( { x: last.x, y: last.y } )
+                output[ci].curves[cp].points.push( { x: last.x, y: y } )
             }
+            last = { x: x, y: y }
         })
     })
 
