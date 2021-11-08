@@ -97,12 +97,13 @@ def injectMockEvents():
         global _mock_epoch
         _tmp_epoch = _mock_epoch
         # generate 10 events for 0.5-5 hours each up to one year ago per input pin.
-        one_year_sec = 365 * 24 * 3600
+        one_day_sec = 24 * 3600
+        one_year_sec = 365 * one_day_sec
         max_hours_sec = 5 * 3600
         rnd = random.Random()
         for p in range(0, _NUM_OUT):
             for k in range (0, 10):
-                _mock_epoch = _tmp_epoch - rnd.randint(0, one_year_sec)
+                _mock_epoch = _tmp_epoch - rnd.randint(0, k == 0 and one_day_sec or one_year_sec)
                 _data.updatePin(p, 1)
                 _mock_epoch += rnd.randint(max_hours_sec / 10, max_hours_sec)
                 _data.updatePin(p, 0)

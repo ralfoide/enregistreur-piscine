@@ -29,9 +29,11 @@ function _isDev() {
 }
 
 function _getServBaseUrl() {
+    let port = _isDev() ? ":8080" : (window.location.port === 80 ? "" : (":" + window.location.port))
     return window.location.protocol
         + "//" + window.location.hostname
-        + (_isDev() ? ":8080" : "/serv")
+        + port
+        + (_isDev() ? "" : "/serv")
 }
 
 const RPConstants = {
