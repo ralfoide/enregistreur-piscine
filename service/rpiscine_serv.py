@@ -59,8 +59,8 @@ _NUM_OUT = 8
 _DUP_OUT = True  # true to duplicate input on output pins
 _FILE_HEADER="rpiscine_v1"
 _DOWNLOAD_NUM_MONTHS = 2
-_CMD_REBOOT = "/home/pi/bitbucket/rpiscine-scripts/bin/_reboot.sh"
-_CMD_SHUTDOWN = "/home/pi/bitbucket/rpiscine-scripts/bin/_shutdown.sh"
+_CMD_REBOOT = "/home/pi/rpiscine-scripts/bin/_reboot.sh"
+_CMD_SHUTDOWN = "/home/pi/rpiscine-scripts/bin/_shutdown.sh"
 _INPUT_NAMES = [  # must match _NUM_OUT
     { "letter": "P", "short": "Pompe",  "long": "M/A Pompe"             },
     { "letter": "C", "short": "Chauf",  "long": "M/A Chauffage"         },
