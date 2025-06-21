@@ -174,6 +174,17 @@ class PiscineData:
     def _get_from_int(self, val, pin_num):
         return (val & (1 << pin_num)) != 0
  
+    def initPin(self, pin_num, is_on):
+        """ pin_num: 0.._NUM_OUT, is_on: Boolean. """
+        new_evt = None
+        with self._lock:
+            self._state = self._set_to_int(self._state, pin_num, is_on)
+            if _DUP_OUT:
+                if self._get_from_int(self._state, pin_num):
+                    _piface.turn_on(pin_num)
+                else:
+                    _piface.turn_off(pin_num)
+
     def updatePin(self, pin_num, is_on):
         """ pin_num: 0.._NUM_OUT, is_on: Boolean. """
         new_evt = None
@@ -191,6 +202,7 @@ class PiscineData:
                         _piface.turn_off(pin_num)
         if new_evt is not None:
             self._append_to_file(new_evt["epoch"], new_evt["state"])
+
 
     # --- Storage API ---
 
@@ -496,8 +508,10 @@ def piface_monitor_async():
     logging.info("Piface thread started")
     last = [ 0 ] * _NUM_OUT
     for p in range(_NUM_OUT):
-        last[p] = _piface.value(p)
-        logging.info("Piface init: pin %s -> state %s", p, last[p])
+        v = _piface.value(p)
+        last[p] = v
+        _data.initPin(p, v != 0)
+        logging.info("Piface init: pin %s -> state %s", p, v)
     while _running:
         for p in range(_NUM_OUT):
             v = _piface.value(p)
