@@ -547,7 +547,11 @@ def cleanup():
         _httpd_thread.join()
     if _piface_thread is not None:
         _piface_thread.join()
-    print("End cleanup") 
+    # Turn off all output LEDs on exit
+    logging.info("Turn off all output LEDs")
+    for p in range(_NUM_OUT):
+        _piface.turn_off(p)
+    logging.info("End cleanup")
 
 
 if __name__ == "__main__":
