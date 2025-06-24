@@ -93,6 +93,8 @@ export function RPMachine() : ReactElement {
             <Navbar.Collapse className="justify-content-end">
                 <Navbar.Text>
                     Addresse IP: <a href={ _data.ip_href }>{ _data.ip }</a>
+                    <span className="RPGap">{ " | " }</span>
+                    Cam&eacute;ras: <a target="_blank" href={ `${_data.ip_href}:8090` }>{ `${_data.ip}:8090` }</a>
                     <span className="RPGap">{ ' ' }</span>
                 </Navbar.Text>
             </Navbar.Collapse>
