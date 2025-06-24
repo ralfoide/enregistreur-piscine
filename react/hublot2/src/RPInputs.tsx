@@ -3,7 +3,6 @@ import RPConstants from "./RPConstants";
 import axios from "axios";
 import {Card, Container} from "react-bootstrap";
 import RPCommon from "./RPCommon.tsx";
-import { DateTime } from "luxon";
 
 interface DataItem {
     state: number;
@@ -44,28 +43,6 @@ export function RPInputs() : ReactElement {
                 _setStatus( { text: "Erreur de chargement: " + error.message, details: error.stack } )
                 RPConstants.log("@@ axios error: " + JSON.stringify(error))
             })
-    }
-
-    function _getFormattedDate(epoch: number) : string{
-        // Performs the equivalent of:
-        //   <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
-        // using the Luxon library.
-
-        const dateTime = DateTime.fromSeconds(epoch, { locale: 'fr' });
-
-        // Moment's LL is equivalent to Luxon's DateTime.DATE_FULL
-        // Moment's LTS is equivalent to Luxon's DateTime.TIME_WITH_SECONDS
-        // Combine both.
-
-        return dateTime.toLocaleString({
-            year:       "numeric",
-            month:      "long",
-            day:        "numeric",
-            hour:       "2-digit",
-            hourCycle:  "h23",      // Ensures 24-hour format, hmmm?
-            minute:     "2-digit",
-            second:     "2-digit",
-        });
     }
 
     if (_status !== undefined) {
@@ -112,10 +89,11 @@ export function RPInputs() : ReactElement {
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    {RPCommon.intToBits(_data.state).map((val, pin) =>
-                                        RPCommon.insertInput("inp", "RPInput", val, pin, ""))}
+                                    { RPCommon.intToBits(_data.state).map((val, pin) =>
+                                        RPCommon.insertInput("inp", "RPInput", val, pin, ""))
+                                    }
                                     <td>
-                                        {_getFormattedDate(_data.epoch)}
+                                        { RPCommon.getFormattedDate(_data.epoch) }
                                     </td>
                                 </tr>
                                 </tbody>
