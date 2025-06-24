@@ -4,6 +4,7 @@ import RPCommon from "./RPCommon.tsx";
 import {type ReactElement, useEffect, useState} from "react";
 import axios from "axios";
 import {Button, Card, Container} from "react-bootstrap";
+import {RPCharts} from "./RPCharts.tsx";
 
 function _toHourMin(dec_hour: number) : string {
     const hour = Math.floor(dec_hour)
@@ -27,7 +28,7 @@ function _prepareData(data : DataList) : DataList {
 
         const indices = Array.from(
             { length: RPConstants.NumOut },
-            (v, k) => k )
+            (_v, k) => k )
         const last_m = indices.map( () => 0 )
 
         for (let i = 0; i < n; i++) {
@@ -54,7 +55,7 @@ function _prepareData(data : DataList) : DataList {
 
 interface StatusItem {
     text: string;
-    details: string | undefined;
+    details?: string;
 }
 
 export function RPEvents() : ReactElement {
@@ -125,7 +126,7 @@ export function RPEvents() : ReactElement {
                 </Card.Body>
             </Card>
             <br/>
-            {/* TBD <RPCharts data={ _data } />*/}
+            <RPCharts data={ _data } />
             <br/>
             <RPEventLog data={ _data } />
         </Container>
