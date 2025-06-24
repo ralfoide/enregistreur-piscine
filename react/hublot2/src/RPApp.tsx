@@ -1,14 +1,15 @@
 import "./RPApp.css"
 import {RPMachine} from "./RPMachine.tsx";
 import {RPFooter} from "./RPFooter.tsx";
+import RPInputs from "./RPInputs.tsx";
 
 function RPApp() {
   return (
       <div className="RPApp">
           <RPMachine/>
           <br/>
-          {/*<RPInputs/>*/}
-          {/*<br/>*/}
+          <RPInputs/>
+          <br/>
           {/*<RPEvents/>*/}
           <br/>
           <RPFooter/>
