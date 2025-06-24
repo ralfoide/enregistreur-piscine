@@ -105,7 +105,7 @@ def injectMockEvents():
             for k in range (0, 10):
                 _mock_epoch = _tmp_epoch - rnd.randint(0, k == 0 and one_day_sec or one_year_sec)
                 _data.updatePin(p, 1)
-                _mock_epoch += rnd.randint(max_hours_sec / 10, max_hours_sec)
+                _mock_epoch += rnd.randint(max_hours_sec // 10, max_hours_sec)
                 _data.updatePin(p, 0)
         _mock_epoch = _tmp_epoch
         _data.reset()
@@ -453,7 +453,7 @@ def parse_args():
     _args = parser.parse_args()
     logging.info("Data dir: %s", _args.data_dir)
     if not os.path.isdir(_args.data_dir):
-        logging.error("Data directory does not exist: %s", _args.data_dir)
+        logging.error("Data directory does not exist: %s -- please create it first", _args.data_dir)
         sys.exit(1)
 
 def setup():
@@ -549,8 +549,9 @@ def cleanup():
         _piface_thread.join()
     # Turn off all output LEDs on exit
     logging.info("Turn off all output LEDs")
-    for p in range(_NUM_OUT):
-        _piface.turn_off(p)
+    if _piface is not None:
+        for p in range(_NUM_OUT):
+            _piface.turn_off(p)
     logging.info("End cleanup")
 
 
