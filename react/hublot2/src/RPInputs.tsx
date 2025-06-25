@@ -51,7 +51,7 @@ export function RPInputs() : ReactElement {
                 <Card>
                     <Card.Body className="bg-white">
                         <Card.Title>Etat courant</Card.Title>
-                        <Card.Text>
+                        <Card.Text as="div">
                             { _status.text }
                             <p/>
                             { _status.details === undefined ? "" : <pre>{_status.details}</pre>}
@@ -67,7 +67,7 @@ export function RPInputs() : ReactElement {
                 <Card>
                     <Card.Body className="bg-white">
                         <Card.Title>Erreur</Card.Title>
-                        <Card.Text>
+                        <Card.Text as="div">
                             Erreur, donn&eacute;es manquantes.
                         </Card.Text>
                     </Card.Body>
@@ -80,7 +80,7 @@ export function RPInputs() : ReactElement {
                 <Card>
                     <Card.Body className="bg-white">
                         <Card.Title>Etat courant</Card.Title>
-                        <Card.Text>
+                        <Card.Text as="div">
                             <table>
                                 <thead>
                                 <tr>

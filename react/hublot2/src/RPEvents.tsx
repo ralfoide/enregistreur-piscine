@@ -96,7 +96,7 @@ export function RPEvents() : ReactElement {
             <Card>
                 <Card.Body className="bg-white" >
                     <Card.Title>Données</Card.Title>
-                    <Card.Text>
+                    <Card.Text as="div">
                         { _status.text }
                         <p/>
                         { _status.details === undefined ? "" : <pre>{_status.details}</pre>}
@@ -109,7 +109,7 @@ export function RPEvents() : ReactElement {
             <Card>
                 <Card.Body className="bg-white" >
                     <Card.Title>Données</Card.Title>
-                    <Card.Text>
+                    <Card.Text as="div">
                         Données: { ' ' }
                         {/*<Moment local unix locale="fr" format="LL, LTS">{ _data.first_epoch }</Moment>*/}
                         { RPCommon.getFormattedDate(_data.first_epoch) }

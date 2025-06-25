@@ -25,7 +25,7 @@ interface EventLogProps {
 }
 
 
-function _insertEvent(ev : Event) {
+function _insertEvent(ev: Event, index: number) {
     const dateTime = DateTime.fromSeconds(ev.epoch, { locale: "fr" });
     const dateString = dateTime.toLocaleString({
         year:       "numeric",
@@ -39,7 +39,7 @@ function _insertEvent(ev : Event) {
     });
     const relativeToNow = dateTime.toRelative();
 
-    return ( <tr key={`evt-1-${ev.epoch}`} className="RPEvent-Line">
+    return ( <tr key={`evt-1-${ev.epoch}-${index}`} className="RPEvent-Line">
         { RPCommon.intToBits(ev.state).map(
             (val, pin) =>
                 RPCommon.insertInput("evt", "RPEvent", val, pin, ev.epoch) ) }
@@ -61,12 +61,12 @@ export function RPEventLog ( props: EventLogProps ) : ReactElement {
             <Card>
                 <Card.Body className="bg-white" >
                     <Card.Title>Evénements</Card.Title>
-                    <Card.Text>
+                    <Card.Text as="div">
                         <table><thead><tr>
                             { RPCommon.insertHeader("evt") }
                         </tr></thead>
                             <tbody>
-                            { props.data.events.slice(0).reverse().map( ev => _insertEvent(ev) ) }
+                            { props.data.events.slice(0).reverse().map( (ev, index) => _insertEvent(ev, index) ) }
                             <tr>
                             </tr></tbody></table>
                     </Card.Text>

@@ -78,7 +78,7 @@ export function RPCharts( props: ChartsProps ) : ReactElement {
             <Card>
                 <Card.Body className="bg-white" >
                     <Card.Title>Courbes derni&egrave;res 24h</Card.Title>
-                    <Card.Text>
+                    <Card.Text as="div">
                         { _insertCharts(_transformData(props.data)) }
                     </Card.Text>
                 </Card.Body>
