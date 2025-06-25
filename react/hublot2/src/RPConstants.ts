@@ -30,8 +30,15 @@ function _isDev() {
     return window.location.port === "3000"
 }
 
+function _isPreview() {
+    // This is the "npm run preview" dev environment if current port is 8070.
+    return window.location.port === "8070"
+}
+
 function _getServBaseUrl() {
-    const port = _isDev() ? ":8080" : (parseInt(window.location.port, 10) === 80 ? "" : (":" + window.location.port))
+    const port = _isDev() ? ":8080" :
+        _isPreview() ? ":80" :
+        (parseInt(window.location.port, 10) === 80 ? "" : (":" + window.location.port))
     return window.location.protocol
         + "//" + window.location.hostname
         + port
