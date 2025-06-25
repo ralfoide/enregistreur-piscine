@@ -1,7 +1,7 @@
 import type {ReactElement} from "react";
 import {Card, Container} from "react-bootstrap";
 import {type ChartData, type ChartPoint, RPChart} from "./RPChart.tsx";
-import type {DataList} from "./RPEventLog.tsx";
+import type {DataEvent, DataList} from "./RPEventLog.tsx";
 import RPConstants from "./RPConstants.ts";
 
 function _insertChart(chartData: ChartData, key: number) {
@@ -34,7 +34,10 @@ function _transformData(input: DataList): ChartData[] {
     const hourNow = (d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()) / 3600
 
     // Copy & sort the input event array to have the most recent event first
-    const rev_events = [...input.events].sort( (a, b) => b.epoch - a.epoch )
+    let rev_events : DataEvent[] = [];
+    if (input.events !== undefined) {
+        rev_events = [...input.events].sort((a, b) => b.epoch - a.epoch)
+    }
 
     const output : ChartData[] = []
     RPConstants.InputNames.forEach( (v, k) => {

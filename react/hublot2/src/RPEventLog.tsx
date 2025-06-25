@@ -3,7 +3,7 @@ import {Card, Container} from "react-bootstrap";
 import RPCommon from "./RPCommon.tsx";
 import {DateTime} from "luxon";
 
-export interface Event {
+export interface DataEvent {
     // rpiscine_serv.py updatePin() line 196:
     state: number;
     epoch: number;
@@ -13,7 +13,7 @@ export interface Event {
 
 export interface DataList {
     // rpisicine_serv.py line 338:
-    events: Event[];
+    events: DataEvent[];
     epoch: number;
     // extra local fields (not from server):
     first_epoch: number;
@@ -25,7 +25,7 @@ interface EventLogProps {
 }
 
 
-function _insertEvent(ev: Event, index: number) {
+function _insertEvent(ev: DataEvent, index: number) {
     const dateTime = DateTime.fromSeconds(ev.epoch, { locale: "fr" });
     const dateString = dateTime.toLocaleString({
         year:       "numeric",

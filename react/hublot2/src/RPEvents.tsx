@@ -15,6 +15,10 @@ function _toHourMin(dec_hour: number) : string {
 }
 
 function _prepareData(data : DataList) : DataList {
+    if (data === undefined || data.events === undefined) {
+        return data
+    }
+
     // Sort in-place with oldest event first. This makes processing more logical.
     data.events.sort((a, b) => a.epoch - b.epoch)
     data.first_epoch = 0

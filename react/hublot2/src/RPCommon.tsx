@@ -37,6 +37,10 @@ function _getFormattedDate(epoch: number) : string{
     //   <Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>
     // using the Luxon library.
 
+    if (epoch === undefined) {
+        return "Inconnu."
+    }
+
     const dateTime = DateTime.fromSeconds(epoch, { locale: "fr" });
 
     // Moment's LL is equivalent to Luxon's DateTime.DATE_FULL
