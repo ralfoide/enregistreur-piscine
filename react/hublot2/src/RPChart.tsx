@@ -21,7 +21,9 @@ export interface ChartCurve {
 }
 
 export interface ChartData {
+    // This is the 0..23 hour to print for the right-most hour on the graph.
     hourNow: number;
+    // A list of curves to draw (each curve is a list of straight lineTo x,y tuples).
     curves: ChartCurve[];
 }
 

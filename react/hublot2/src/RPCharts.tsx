@@ -12,6 +12,12 @@ function _insertCharts(chartsData: ChartData[]) {
     return chartsData.map( (chartData, k) => _insertChart(chartData, k) )
 }
 
+// Computes the delta in hours between the reference (now expressed in hours) and a given
+// time in the past (expressed in seconds).
+function _hourDelta(nowInHours: number, timeInSeconds: number) {
+    return nowInHours - (timeInSeconds / 3600);
+}
+
 function _transformData(input: DataList): ChartData[] {
     // Input: event list [ { state: byte, epoch: timestamp }]
     // Output: drawing data: {
@@ -27,9 +33,7 @@ function _transformData(input: DataList): ChartData[] {
 
     // moment.valueOf() in ms converted to hours
     const d = new Date()
-    const nowHour = d.valueOf() / 1000 / 3600
-    // function to compute hour difference from now to input second timestamps
-    const hourDelta = (tsec: number) => nowHour - (tsec / 3600)
+    const nowInHours = d.valueOf() / 1000 / 3600
 
     const hourNow = (d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()) / 3600
 
@@ -58,14 +62,22 @@ function _transformData(input: DataList): ChartData[] {
 
         let last : ChartPoint|undefined = undefined
         rev_events.forEach( ev => {
-            const x = hourDelta(ev.epoch)
+            // x is the delta in seconds from now towards the past.
+            //   Note that rounding can make some events be in the future (negative x).
+            // y is the curve height (0 or 1).
+            // This foreach goes from x=0 (newest value) to x=>0 (oldest value),
+            // that is we prepare the draw the curve from the right to the left.
+            const x = _hourDelta(nowInHours, ev.epoch)
             const y = (ev.state & mask) === 0 ? 0 : 1
-            if (last === undefined) {
-                output[ci].curves[cp].points.push( { x: x, y: y } )
-            } else if (y !== last.y) {
+            if (last !== undefined && y !== last.y) {
+                // An Y change means there has _been_ an edge.
+                // Since we draw the curve from the right (newest) to the left (oldest),
+                // we always set the edge on the last segments (the newest time) since
+                // data points always represent the latest state change.
                 output[ci].curves[cp].points.push( { x: last.x, y: last.y } )
                 output[ci].curves[cp].points.push( { x: last.x, y: y } )
             }
+            output[ci].curves[cp].points.push( { x: x, y: y } )
             last = { x: x, y: y }
         })
     })
