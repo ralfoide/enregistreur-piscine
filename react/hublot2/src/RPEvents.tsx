@@ -115,16 +115,13 @@ export function RPEvents() : ReactElement {
                     <Card.Title>Données</Card.Title>
                     <Card.Text as="div">
                         Données: { ' ' }
-                        {/*<Moment local unix locale="fr" format="LL, LTS">{ _data.first_epoch }</Moment>*/}
                         { RPCommon.getFormattedDate(_data.first_epoch) }
                         { ' ' } ... jusqu'&agrave; ... { ' ' }
-                        {/*<Moment local unix locale="fr" format="LL, LTS">{ _data.last_epoch }</Moment>*/}
                         { RPCommon.getFormattedDate(_data.last_epoch) }
                         { ' ' }
                         <Button size="sm" className="float-end" href={ RPConstants.downloadUrl() }>Télécharger</Button>
                         <br/>
                         Affichage mis &agrave; jour: { ' ' }
-                        {/*<Moment local unix locale="fr" format="LL, LTS">{ _data.epoch }</Moment>*/}
                         { RPCommon.getFormattedDate(_data.epoch) }
                     </Card.Text>
                 </Card.Body>

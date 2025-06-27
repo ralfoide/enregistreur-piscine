@@ -44,10 +44,8 @@ function _insertEvent(ev: DataEvent, index: number) {
             (val, pin) =>
                 RPCommon.insertInput("evt", "RPEvent", val, pin, ev.epoch) ) }
         <td key={`evt-2-${ev.epoch}`}>
-            {/* OLD: <Moment unix local locale="fr" format="L, LTS">{ ev.epoch }</Moment>*/}
             { dateString }
             , { ' ' }
-            {/*<Moment unix local locale="fr" withTitle titleFormat="LL, LTS" fromNow>{ ev.epoch }</Moment>.*/}
             <span title={dateString}>{ relativeToNow }</span>
         </td><td key={`evt-4-${ev.epoch}`}>
         &nbsp;{ ev.delta }

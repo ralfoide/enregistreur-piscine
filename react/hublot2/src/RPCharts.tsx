@@ -42,7 +42,9 @@ function _transformData(input: DataList): ChartData[] {
     const output : ChartData[] = []
     RPConstants.InputNames.forEach( (v, k) => {
         const ci = v.chart
-        if (output[ci] === undefined) { output.push( { hourNow: hourNow, curves: [] } ) }
+        if (output[ci] === undefined) {
+            output.push( { hourNow: hourNow, curves: [] } )
+        }
         const cp = v.chart_pos
         if (output[ci].curves[cp] === undefined) {
             output[ci].curves.push( {

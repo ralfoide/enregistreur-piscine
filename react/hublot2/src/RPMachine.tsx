@@ -77,11 +77,6 @@ export function RPMachine() : ReactElement {
             <Navbar.Brand href="/">
                 R-Piscine
             </Navbar.Brand>
-            {/* <Navbar.Collapse className="justify-content-end">
-                <Navbar.Text>
-                    User Name
-                </Navbar.Text>
-            </Navbar.Collapse> */}
         </Navbar>
     ) : (
         <Navbar bg="dark" variant="dark">
