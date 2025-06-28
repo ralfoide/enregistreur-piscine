@@ -61,7 +61,7 @@ Node JS: 24.0.0
 ![Raspberry Pi 4 B](https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Raspberry_Pi_4_Model_B_-_Top.jpg/960px-Raspberry_Pi_4_Model_B_-_Top.jpg) | ![PiFace](https://wiki.domoticz.com/images/4/45/Piface.jpg)
 
 PiFace can be used on a [Raspberry Pi 4](https://en.wikipedia.org/wiki/Raspberry_Pi_4) using the
-forked [github.com/ralfoide/pifacecommon](https://github.com/ralfoide/pifacecommon) librrary.
+forked [github.com/ralfoide/pifacecommon](https://github.com/ralfoide/pifacecommon) library.
 
 
 ## License
