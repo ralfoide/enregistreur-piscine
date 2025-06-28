@@ -1,0 +1,53 @@
+body {
+  --bs-body-bg: lightgray;
+}
+
+.RPApp {
+}
+
+
+.container {
+  /* We don't nest containers, so remove their margin aka gutter. */
+  --bs-gutter-x: 0px;
+}
+
+.navbar {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+.RPGap {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.RPHeader {
+  font-size: small;
+}
+
+span.RPInput, span.RPEvent {
+  margin-right: 0.5em;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+.RPInput.on, .RPEvent.on {
+  background-color: lightgreen;
+}
+
+.RPInput.off {
+  background-color: red;
+}
+
+.RPEvent.off {
+  background-color: lightgray;
+}
+
+/* p.RPEvent-Line {
+  margin-block-end: 0.1em;
+} */
+
+.RPChart {
+  width: 700px;
+  height: 200px;
+}
